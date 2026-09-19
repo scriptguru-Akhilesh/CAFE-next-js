@@ -1,0 +1,426 @@
+================================================================================
+CORNER ROASTERY - API DATA CONTRACT & INITIAL SEED DATA
+================================================================================
+This file contains the complete specification of all API data structures,
+mock responses, schema formats, and seed data. You can easily copy and connect
+these data definitions to any custom backend database (PostgreSQL, Supabase, 
+MongoDB, Firebase) or external REST API service.
+
+================================================================================
+1. ADMIN AUTHENTICATION API
+================================================================================
+
+Endpoint: POST /api/auth/login
+Description: Authenticates owner/admin using email/username and password.
+
+Request Body:
+{
+  "email": "admin@cornerroastery.com", // or username "admin"
+  "password": "admin123"
+}
+
+Success Response (200 OK):
+{
+  "success": true,
+  "user": {
+    "id": "admin-1",
+    "name": "Cafe Owner",
+    "email": "admin@cornerroastery.com",
+    "role": "admin"
+  },
+  "token": "token_admin_corner_roastery_session"
+}
+
+Error Response (401 Unauthorized):
+{
+  "success": false,
+  "error": "Invalid email or password. Default is admin@cornerroastery.com / admin123"
+}
+
+--------------------------------------------------------------------------------
+Endpoint: GET /api/auth/session
+Description: Verifies active admin session token.
+
+Headers:
+Authorization: Bearer <token>
+
+Response (200 OK):
+{
+  "authenticated": true,
+  "user": {
+    "id": "admin-1",
+    "name": "Cafe Owner",
+    "email": "admin@cornerroastery.com",
+    "role": "admin"
+  }
+}
+
+================================================================================
+2. DISH CATALOG / MENU API
+================================================================================
+
+Endpoint: GET /api/menu
+Description: Returns list of all available menu items.
+
+Response (200 OK):
+[
+  {
+    "id": "item-1",
+    "name": "Espresso Roast",
+    "price": 180,
+    "category": "Coffee",
+    "description": "Rich and bold single-origin espresso with caramel crema.",
+    "isAvailable": true,
+    "isVeg": true,
+    "isSpicy": false,
+    "isBestseller": true,
+    "imageUrl": "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=600&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "item-2",
+    "name": "Cappuccino Artisan",
+    "price": 240,
+    "category": "Coffee",
+    "description": "Equal parts espresso, steamed milk, and silky thick microfoam.",
+    "isAvailable": true,
+    "isVeg": true,
+    "isSpicy": false,
+    "isBestseller": true,
+    "imageUrl": "https://images.unsplash.com/photo-1534778101976-62847782c213?w=600&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "item-3",
+    "name": "Vanilla Bean Latte",
+    "price": 280,
+    "category": "Coffee",
+    "description": "Velvety steamed whole milk infused with Madagascar vanilla bean extract.",
+    "isAvailable": true,
+    "isVeg": true,
+    "isSpicy": false,
+    "isBestseller": false,
+    "imageUrl": "https://images.unsplash.com/photo-1570968915860-54d5c301fa9f?w=600&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "item-4",
+    "name": "Caramel Macchiato",
+    "price": 310,
+    "category": "Coffee",
+    "description": "Freshly brewed espresso poured gently over vanilla milk and salted caramel drizzle.",
+    "isAvailable": true,
+    "isVeg": true,
+    "isSpicy": false,
+    "isBestseller": true,
+    "imageUrl": "https://images.unsplash.com/photo-1485808191679-5f86510681a2?w=600&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "item-5",
+    "name": "Cold Brew Reserve",
+    "price": 260,
+    "category": "Coffee",
+    "description": "Steeped slowly for 18 hours in cold filtered water for an ultra-smooth finish.",
+    "isAvailable": true,
+    "isVeg": true,
+    "isSpicy": false,
+    "isBestseller": true,
+    "imageUrl": "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=600&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "item-6",
+    "name": "Butter Croissant",
+    "price": 190,
+    "category": "Bakery",
+    "description": "Flaky, golden Parisian butter pastry baked fresh every single morning.",
+    "isAvailable": true,
+    "isVeg": true,
+    "isSpicy": false,
+    "isBestseller": true,
+    "imageUrl": "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=600&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "item-7",
+    "name": "Pain au Chocolat",
+    "price": 230,
+    "category": "Bakery",
+    "description": "Layered laminated puff pastry stuffed with twin batons of Belgian dark chocolate.",
+    "isAvailable": true,
+    "isVeg": true,
+    "isSpicy": false,
+    "isBestseller": false,
+    "imageUrl": "https://images.unsplash.com/photo-1608198093002-ad4e005484ec?w=600&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "item-8",
+    "name": "Wild Blueberry Muffin",
+    "price": 180,
+    "category": "Bakery",
+    "description": "Soft crumb muffin bursting with wild mountain blueberries and crunchy cinnamon streusel.",
+    "isAvailable": true,
+    "isVeg": true,
+    "isSpicy": false,
+    "isBestseller": false,
+    "imageUrl": "https://images.unsplash.com/photo-1607958996333-41aef7caefaa?w=600&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "item-9",
+    "name": "Cinnamon Swirl Roll",
+    "price": 210,
+    "category": "Bakery",
+    "description": "Warm spiced cinnamon roll generously glazed with whipped cream cheese icing.",
+    "isAvailable": true,
+    "isVeg": true,
+    "isSpicy": false,
+    "isBestseller": true,
+    "imageUrl": "https://images.unsplash.com/photo-1509365465985-25d11c17e812?w=600&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "item-10",
+    "name": "Avocado Sourdough Toast",
+    "price": 320,
+    "category": "Food",
+    "description": "Toasted rustic sourdough topped with smashed Hass avocado, chili flakes & microgreens.",
+    "isAvailable": true,
+    "isVeg": true,
+    "isSpicy": true,
+    "isBestseller": true,
+    "imageUrl": "https://images.unsplash.com/photo-1588137378633-dea1336ce1e2?w=600&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "item-11",
+    "name": "Truffle Mushroom Panini",
+    "price": 360,
+    "category": "Food",
+    "description": "Grilled ciabatta with wild sauteed mushrooms, aged gruyere cheese, and truffle oil.",
+    "isAvailable": true,
+    "isVeg": true,
+    "isSpicy": false,
+    "isBestseller": false,
+    "imageUrl": "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=600&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "item-12",
+    "name": "Mediterranean Mezze Bowl",
+    "price": 340,
+    "category": "Food",
+    "description": "Creamy tahini hummus, crispy falafel, kalamata olives, cherry tomatoes & warm pita.",
+    "isAvailable": true,
+    "isVeg": true,
+    "isSpicy": false,
+    "isBestseller": false,
+    "imageUrl": "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "item-13",
+    "name": "Japanese Ceremonial Matcha",
+    "price": 290,
+    "category": "Beverages",
+    "description": "First-harvest Uji matcha hand-whisked with creamy oat milk and a touch of agave.",
+    "isAvailable": true,
+    "isVeg": true,
+    "isSpicy": false,
+    "isBestseller": true,
+    "imageUrl": "https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=600&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "item-14",
+    "name": "Dark Belgian Hot Chocolate",
+    "price": 270,
+    "category": "Beverages",
+    "description": "Melted 70% Callebaut dark chocolate infused with whole milk and toasted marshmallows.",
+    "isAvailable": true,
+    "isVeg": true,
+    "isSpicy": false,
+    "isBestseller": false,
+    "imageUrl": "https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed?w=600&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "item-15",
+    "name": "Passionfruit Iced Fizz",
+    "price": 240,
+    "category": "Beverages",
+    "description": "Sparkling soda infused with tropical passionfruit pulp, fresh garden mint, and lime.",
+    "isAvailable": true,
+    "isVeg": true,
+    "isSpicy": false,
+    "isBestseller": false,
+    "imageUrl": "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=600&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "item-16",
+    "name": "Classic Tiramisu Cup",
+    "price": 290,
+    "category": "Desserts",
+    "description": "Espresso-soaked savoiardi ladyfingers layered with whipped mascarpone and Dutch cocoa.",
+    "isAvailable": true,
+    "isVeg": true,
+    "isSpicy": false,
+    "isBestseller": true,
+    "imageUrl": "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "item-17",
+    "name": "New York Baked Cheesecake",
+    "price": 320,
+    "category": "Desserts",
+    "description": "Dense and creamy Philadelphia cheesecake on a buttery graham cracker base.",
+    "isAvailable": true,
+    "isVeg": true,
+    "isSpicy": false,
+    "isBestseller": false,
+    "imageUrl": "https://images.unsplash.com/photo-1533134242443-d4fd215305ad?w=600&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": "item-18",
+    "name": "Warm Molten Lava Cake",
+    "price": 280,
+    "category": "Desserts",
+    "description": "Decadent dark chocolate soufflé cake with a rich liquid chocolate molten core.",
+    "isAvailable": true,
+    "isVeg": true,
+    "isSpicy": false,
+    "isBestseller": false,
+    "imageUrl": "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=600&auto=format&fit=crop&q=80"
+  }
+]
+
+--------------------------------------------------------------------------------
+Endpoint: POST /api/menu
+Description: Create a new dish item.
+
+Request Body:
+{
+  "name": "Hazelnut Praline Croissant",
+  "price": 260,
+  "category": "Bakery",
+  "description": "Freshly baked croissant filled with roasted hazelnut praline creme.",
+  "isAvailable": true,
+  "isVeg": true,
+  "isSpicy": false,
+  "isBestseller": false,
+  "imageUrl": "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=600&auto=format&fit=crop&q=80"
+}
+
+================================================================================
+3. TABLES & QR STANDS API (Simplified Name & Number Flow)
+================================================================================
+
+Endpoint: GET /api/tables
+Description: Returns list of all cafe dining tables.
+
+Response (200 OK):
+[
+  { "id": "tbl-1", "name": "Table 1", "number": "1", "createdAt": 1710000001000 },
+  { "id": "tbl-2", "name": "Table 2", "number": "2", "createdAt": 1710000002000 },
+  { "id": "tbl-3", "name": "Table 3", "number": "3", "createdAt": 1710000003000 },
+  { "id": "tbl-4", "name": "Table 4", "number": "4", "createdAt": 1710000004000 },
+  { "id": "tbl-5", "name": "Table 5", "number": "5", "createdAt": 1710000005000 },
+  { "id": "tbl-6", "name": "Table 6", "number": "6", "createdAt": 1710000006000 },
+  { "id": "tbl-7", "name": "Table 7", "number": "7", "createdAt": 1710000007000 },
+  { "id": "tbl-8", "name": "Table 8", "number": "8", "createdAt": 1710000008000 }
+]
+
+--------------------------------------------------------------------------------
+Endpoint: POST /api/tables
+Description: Add a new dining table.
+
+Request Body:
+{
+  "name": "Patio Table 9",
+  "number": "9"
+}
+
+Response (201 Created):
+{
+  "success": true,
+  "table": {
+    "id": "tbl-123456",
+    "name": "Patio Table 9",
+    "number": "9",
+    "createdAt": 1710000099000
+  }
+}
+
+================================================================================
+4. ORDERS & KITCHEN DISPLAY SYSTEM (KDS) API
+================================================================================
+
+Endpoint: GET /api/orders
+Description: Returns list of live orders.
+
+Response (200 OK):
+[
+  {
+    "id": "ORD-101",
+    "tableNumber": "5",
+    "items": [
+      {
+        "id": "item-1",
+        "name": "Espresso Roast",
+        "price": 180,
+        "quantity": 2,
+        "notes": "Extra hot please"
+      },
+      {
+        "id": "item-6",
+        "name": "Butter Croissant",
+        "price": 190,
+        "quantity": 1
+      }
+    ],
+    "totalAmount": 550,
+    "status": "In Progress", // Allowed values: "Pending" | "In Progress" | "Ready" | "Served" | "Cancelled"
+    "createdAt": 1710000050000,
+    "notes": "Table 5 priority"
+  }
+]
+
+--------------------------------------------------------------------------------
+Endpoint: POST /api/orders
+Description: Place a new customer order from digital menu.
+
+Request Body:
+{
+  "tableNumber": "5",
+  "items": [
+    {
+      "id": "item-2",
+      "name": "Cappuccino Artisan",
+      "price": 240,
+      "quantity": 1,
+      "notes": "Oat milk"
+    }
+  ],
+  "totalAmount": 240,
+  "notes": "Corner seat"
+}
+
+Response (201 Created):
+{
+  "success": true,
+  "order": {
+    "id": "ORD-102",
+    "tableNumber": "5",
+    "items": [...],
+    "totalAmount": 240,
+    "status": "Pending",
+    "createdAt": 1710000060000
+  }
+}
+
+--------------------------------------------------------------------------------
+Endpoint: PATCH /api/orders/:id
+Description: Update order status from Kitchen Display.
+
+Request Body:
+{
+  "status": "Ready" // or "In Progress", "Served", "Cancelled"
+}
+
+Response (200 OK):
+{
+  "success": true,
+  "order": {
+    "id": "ORD-102",
+    "status": "Ready"
+  }
+}
+================================================================================

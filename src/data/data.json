@@ -1,0 +1,227 @@
+{
+  "menu": [
+    {
+      "id": "1",
+      "name": "Espresso",
+      "price": 140,
+      "category": "Coffee",
+      "description": "Double shot of house espresso roast with thick hazelnut crema",
+      "image": "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?auto=format&fit=crop&w=600&q=80",
+      "badge": "Classic",
+      "prepTime": "2-3 min",
+      "available": true,
+      "isVeg": true
+    },
+    {
+      "id": "2",
+      "name": "Americano",
+      "price": 160,
+      "category": "Coffee",
+      "description": "Double espresso pulled over hot filtered mountain spring water",
+      "image": "https://images.unsplash.com/photo-1551030173-122aabc4489c?auto=format&fit=crop&w=600&q=80",
+      "prepTime": "2-3 min",
+      "available": true,
+      "isVeg": true
+    },
+    {
+      "id": "3",
+      "name": "Flat White",
+      "price": 210,
+      "category": "Coffee",
+      "description": "Velvety microfoam poured over double ristretto for a rich finish",
+      "image": "https://images.unsplash.com/photo-1577968897966-3d4325b36b61?auto=format&fit=crop&w=600&q=80",
+      "badge": "Bestseller",
+      "prepTime": "3-4 min",
+      "available": true,
+      "isVeg": true
+    },
+    {
+      "id": "4",
+      "name": "Cappuccino",
+      "price": 190,
+      "category": "Coffee",
+      "description": "Equal parts espresso, steamed milk, and airy microfoam with cocoa dust",
+      "image": "https://images.unsplash.com/photo-1534778101976-62847782c213?auto=format&fit=crop&w=600&q=80",
+      "prepTime": "3-4 min",
+      "available": true,
+      "isVeg": true
+    },
+    {
+      "id": "5",
+      "name": "Vanilla Latte",
+      "price": 220,
+      "category": "Coffee",
+      "description": "Madagascar bourbon vanilla bean syrup with espresso and steamed milk",
+      "image": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80",
+      "badge": "Popular",
+      "prepTime": "3-5 min",
+      "available": true,
+      "isVeg": true
+    },
+    {
+      "id": "6",
+      "name": "Cold Brew",
+      "price": 180,
+      "category": "Iced & Tea",
+      "description": "18-hour slow steeped single-origin coffee served over crystal ice",
+      "image": "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=600&q=80",
+      "badge": "Refreshing",
+      "prepTime": "1-2 min",
+      "available": true,
+      "isVeg": true
+    },
+    {
+      "id": "7",
+      "name": "Iced Caramel Macchiato",
+      "price": 240,
+      "category": "Iced & Tea",
+      "description": "Chilled milk, vanilla syrup, espresso float, and salted caramel drizzle",
+      "image": "https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=600&q=80",
+      "badge": "Sweet & Iced",
+      "prepTime": "3-4 min",
+      "available": true,
+      "isVeg": true
+    },
+    {
+      "id": "8",
+      "name": "Matcha Green Tea Latte",
+      "price": 240,
+      "category": "Iced & Tea",
+      "description": "Ceremonial Uji matcha whisked with warm textured oat milk",
+      "image": "https://images.unsplash.com/photo-1536256263959-770b48d82b0a?auto=format&fit=crop&w=600&q=80",
+      "prepTime": "4-5 min",
+      "available": true,
+      "isVeg": true
+    },
+    {
+      "id": "9",
+      "name": "Spiced Chai Latte",
+      "price": 140,
+      "category": "Iced & Tea",
+      "description": "Assam black tea simmered with cardamom, cinnamon, clove, and milk",
+      "image": "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80",
+      "prepTime": "3-4 min",
+      "available": true,
+      "isVeg": true
+    },
+    {
+      "id": "10",
+      "name": "Butter Croissant",
+      "price": 160,
+      "category": "Bakery & Food",
+      "description": "Flaky artisanal French butter pastry baked fresh this morning",
+      "image": "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=600&q=80",
+      "badge": "Fresh Baked",
+      "prepTime": "Ready",
+      "available": true,
+      "isVeg": true
+    },
+    {
+      "id": "11",
+      "name": "Pain au Chocolat",
+      "price": 190,
+      "category": "Bakery & Food",
+      "description": "Golden laminated dough wrapped around two dark chocolate batons",
+      "image": "https://images.unsplash.com/photo-1530610476181-d83430b64dcd?auto=format&fit=crop&w=600&q=80",
+      "prepTime": "Ready",
+      "available": true,
+      "isVeg": true
+    },
+    {
+      "id": "12",
+      "name": "Avocado Sourdough Toast",
+      "price": 290,
+      "category": "Bakery & Food",
+      "description": "Crushed Hass avocado, toasted seeds, chili flakes, and flaky Maldon salt",
+      "image": "https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=600&q=80",
+      "badge": "Chef Choice",
+      "prepTime": "6-8 min",
+      "available": true,
+      "isVeg": true
+    },
+    {
+      "id": "13",
+      "name": "New York Blueberry Cheesecake",
+      "price": 260,
+      "category": "Bakery & Food",
+      "description": "Creamy baked cream cheese with wild Maine blueberry compote topping",
+      "image": "https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&w=600&q=80",
+      "prepTime": "Ready",
+      "available": true,
+      "isVeg": true
+    },
+    {
+      "id": "14",
+      "name": "Cafe Club Sandwich",
+      "price": 280,
+      "category": "Bakery & Food",
+      "description": "Smoked turkey, crisp greens, heirloom tomato, and Dijon on toasted brioche",
+      "image": "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=600&q=80",
+      "prepTime": "7-10 min",
+      "available": true,
+      "isVeg": false
+    }
+  ],
+  "tables": [
+    { "id": "tbl-1", "name": "Table 1", "number": "1", "createdAt": 1710000001000 },
+    { "id": "tbl-2", "name": "Table 2", "number": "2", "createdAt": 1710000002000 },
+    { "id": "tbl-3", "name": "Table 3", "number": "3", "createdAt": 1710000003000 },
+    { "id": "tbl-4", "name": "Table 4", "number": "4", "createdAt": 1710000004000 },
+    { "id": "tbl-5", "name": "Table 5", "number": "5", "createdAt": 1710000005000 },
+    { "id": "tbl-6", "name": "Table 6", "number": "6", "createdAt": 1710000006000 },
+    { "id": "tbl-7", "name": "Table 7", "number": "7", "createdAt": 1710000007000 },
+    { "id": "tbl-8", "name": "Table 8", "number": "8", "createdAt": 1710000008000 }
+  ],
+  "orders": [
+    {
+      "id": "ord-101",
+      "tableNumber": "3",
+      "items": [
+        {
+          "id": "3",
+          "name": "Flat White",
+          "price": 210,
+          "quantity": 2,
+          "image": "https://images.unsplash.com/photo-1577968897966-3d4325b36b61?auto=format&fit=crop&w=600&q=80"
+        },
+        {
+          "id": "10",
+          "name": "Butter Croissant",
+          "price": 160,
+          "quantity": 1,
+          "image": "https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=600&q=80"
+        }
+      ],
+      "total": 580,
+      "timestamp": "11:45 AM",
+      "createdAt": 1710000009000,
+      "status": "Preparing",
+      "notes": "Warm croissant, extra hot coffee"
+    },
+    {
+      "id": "ord-102",
+      "tableNumber": "7",
+      "items": [
+        {
+          "id": "7",
+          "name": "Iced Caramel Macchiato",
+          "price": 240,
+          "quantity": 1,
+          "image": "https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=600&q=80"
+        },
+        {
+          "id": "12",
+          "name": "Avocado Sourdough Toast",
+          "price": 280,
+          "quantity": 1,
+          "image": "https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=600&q=80"
+        }
+      ],
+      "total": 520,
+      "timestamp": "11:52 AM",
+      "createdAt": 1710000010000,
+      "status": "Pending",
+      "notes": "Less caramel, oat milk if possible"
+    }
+  ]
+}

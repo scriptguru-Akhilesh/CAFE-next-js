@@ -1,0 +1,6 @@
+{
+  "name": "Simple QR Cafe Ordering",
+  "description": "Lightweight QR cafe ordering system with customer digital menu in INR, real-time kitchen display, owner dish catalog, and dynamic table creation with printable QR stands.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
