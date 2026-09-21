@@ -8,7 +8,7 @@ interface AdminAuthContextType {
   user: AdminUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (emailOrUser: string, pass: string) => Promise<{ success: boolean; error?: string }>;
+  login: (emailOrUser: string, pass: string) => Promise<{ success: boolean; error?: string; user?: AdminUser }>;
   logout: () => void;
 }
 
@@ -36,7 +36,7 @@ export const AdminAuthProvider: React.FC<{ children: ReactNode }> = ({ children 
       setUser(result.user);
       setIsAuthenticated(true);
       setIsLoading(false);
-      return { success: true };
+      return { success: true, user: result.user };
     } else {
       setIsLoading(false);
       return { success: false, error: result.error || 'Authentication failed' };

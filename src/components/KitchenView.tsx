@@ -2,14 +2,27 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
-  CheckCircle2, Clock, UtensilsCrossed, Bell, BellOff,
-  ArrowLeft, RefreshCw, ChefHat, Layers,
-  Flame, CheckCheck, Trash2, StickyNote,
-  Search, LayoutGrid, ListFilter, AlertCircle,
-  Volume2
+  CheckCircle2,
+  Clock,
+  UtensilsCrossed,
+  Bell,
+  BellOff,
+  RefreshCw,
+  ChefHat,
+  Layers,
+  Flame,
+  CheckCheck,
+  Trash2,
+  StickyNote,
+  Search,
+  LayoutGrid,
+  ListFilter,
+  AlertCircle,
+  Volume2,
 } from 'lucide-react';
 import { KitchenOrder, OrderStatus } from '../types';
 import { orderStorage } from '../utils/orderStorage';
+
 interface KitchenViewProps {
   onSwitchToCustomer: (table?: string) => void;
   onSwitchToMenuManagement?: () => void;
@@ -22,7 +35,7 @@ export const KitchenView: React.FC<KitchenViewProps> = ({
   variant = 'standalone',
 }) => {
   const isAdminShell = variant === 'admin';
-  // Always initialize from orderStorage (instant load, never blank)
+
   const [orders, setOrders] = useState<KitchenOrder[]>(() => orderStorage.getOrders());
   const [loading] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -30,46 +43,55 @@ export const KitchenView: React.FC<KitchenViewProps> = ({
   const [activeTab, setActiveTab] = useState<'ALL_ACTIVE' | OrderStatus>('ALL_ACTIVE');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [tableFilter, setTableFilter] = useState<string>('ALL');
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'cards' | 'compact'>('cards');
   const [nowTime, setNowTime] = useState<number>(Date.now());
-  const [audioUnlocked, setAudioUnlocked] = useState<boolean>(false);
+  const [audioUnlocked, setAudioUnlocked] = useState(false);
 
   const prevOrdersCountRef = useRef<number>(orders.length);
   const audioCtxRef = useRef<AudioContext | null>(null);
 
-  // Initialize/unlock Web Audio on user touch for mobile browsers (iOS Safari/Android)
   const unlockAudio = useCallback(() => {
     try {
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const AudioCtx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+
       if (!AudioCtx) return;
+
       if (!audioCtxRef.current) {
         audioCtxRef.current = new AudioCtx();
       }
+
       if (audioCtxRef.current.state === 'suspended') {
-        audioCtxRef.current.resume();
+        void audioCtxRef.current.resume();
       }
+
       setAudioUnlocked(true);
     } catch {
-      // Audio autoplay policy catch
+      // Browser audio policy can prevent autoplay.
     }
   }, []);
 
-  // Synthesize pleasant kitchen order alert chime
   const playChime = useCallback(() => {
     if (!soundEnabled) return;
+
     try {
       unlockAudio();
+
       const ctx = audioCtxRef.current;
       if (!ctx) return;
+
       const now = ctx.currentTime;
 
       const osc1 = ctx.createOscillator();
       const gain1 = ctx.createGain();
+
       osc1.type = 'sine';
-      osc1.frequency.setValueAtTime(587.33, now); // D5
+      osc1.frequency.setValueAtTime(587.33, now);
       gain1.gain.setValueAtTime(0.2, now);
       gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
       osc1.connect(gain1);
       gain1.connect(ctx.destination);
       osc1.start(now);
@@ -77,37 +99,43 @@ export const KitchenView: React.FC<KitchenViewProps> = ({
 
       const osc2 = ctx.createOscillator();
       const gain2 = ctx.createGain();
+
       osc2.type = 'triangle';
-      osc2.frequency.setValueAtTime(880, now + 0.12); // A5
+      osc2.frequency.setValueAtTime(880, now + 0.12);
       gain2.gain.setValueAtTime(0.18, now + 0.12);
       gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+
       osc2.connect(gain2);
       gain2.connect(ctx.destination);
       osc2.start(now + 0.12);
       osc2.stop(now + 0.55);
     } catch {
-      // Audio autoplay policy ignored
+      // Ignore browser audio errors.
     }
   }, [soundEnabled, unlockAudio]);
 
-  // Keep live elapsed time fresh every 30s
   useEffect(() => {
     const timer = setInterval(() => setNowTime(Date.now()), 30000);
     return () => clearInterval(timer);
   }, []);
 
-  // Real-time browser storage subscription
   useEffect(() => {
     const initialOrders = orderStorage.getOrders();
+
     setOrders(initialOrders);
     prevOrdersCountRef.current = initialOrders.length;
 
     const unsubscribe = orderStorage.subscribe((updatedOrders) => {
       setOrders(updatedOrders);
       setLastUpdated(new Date());
-      if (updatedOrders.length > prevOrdersCountRef.current && prevOrdersCountRef.current > 0) {
+
+      if (
+        updatedOrders.length > prevOrdersCountRef.current &&
+        prevOrdersCountRef.current > 0
+      ) {
         playChime();
       }
+
       prevOrdersCountRef.current = updatedOrders.length;
     });
 
@@ -121,8 +149,10 @@ export const KitchenView: React.FC<KitchenViewProps> = ({
     setLastUpdated(new Date());
   }, []);
 
-  // Update order status (Pending -> Preparing -> Ready -> Served)
-  const handleUpdateStatus = async (orderId: string, newStatus: OrderStatus) => {
+  const handleUpdateStatus = async (
+    orderId: string,
+    newStatus: OrderStatus,
+  ) => {
     unlockAudio();
     setUpdatingId(orderId);
 
@@ -131,68 +161,108 @@ export const KitchenView: React.FC<KitchenViewProps> = ({
     setUpdatingId(null);
   };
 
-  // Remove / archive order
   const handleDismissOrder = async (orderId: string) => {
     unlockAudio();
     setUpdatingId(orderId);
 
     orderStorage.dismissOrder(orderId);
     setOrders(orderStorage.getOrders());
-    prevOrdersCountRef.current = Math.max(0, prevOrdersCountRef.current - 1);
+    prevOrdersCountRef.current = Math.max(
+      0,
+      prevOrdersCountRef.current - 1,
+    );
     setUpdatingId(null);
   };
 
-  // Stage counts for badges
   const counts = useMemo(() => {
-    const p = orders.filter((o) => (o.status || 'Pending') === 'Pending').length;
-    const prep = orders.filter((o) => o.status === 'Preparing').length;
+    const p = orders.filter(
+      (o) => (o.status || 'Pending') === 'Pending',
+    ).length;
+    const prep = orders.filter(
+      (o) => o.status === 'Preparing',
+    ).length;
     const r = orders.filter((o) => o.status === 'Ready').length;
     const s = orders.filter((o) => o.status === 'Served').length;
     const active = p + prep + r;
+
     return { p, prep, r, s, active };
   }, [orders]);
 
-  // Available unique table numbers
   const uniqueTables = useMemo(() => {
     const set = new Set<string>();
+
     orders.forEach((o) => {
       if (o.tableNumber) set.add(o.tableNumber);
     });
-    return Array.from(set).sort((a, b) => Number(a) - Number(b));
+
+    return Array.from(set).sort((a, b) => {
+      const aNum = Number(a);
+      const bNum = Number(b);
+
+      if (!Number.isNaN(aNum) && !Number.isNaN(bNum)) {
+        return aNum - bNum;
+      }
+
+      return a.localeCompare(b);
+    });
   }, [orders]);
 
-  // Filtered orders according to stage tab, table filter, and search text
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
       const status: OrderStatus = order.status || 'Pending';
 
-      // Stage filter
-      if (activeTab === 'ALL_ACTIVE' && status === 'Served') return false;
-      if (activeTab !== 'ALL_ACTIVE' && status !== activeTab) return false;
+      if (activeTab === 'ALL_ACTIVE' && status === 'Served') {
+        return false;
+      }
 
-      // Table filter
-      if (tableFilter !== 'ALL' && order.tableNumber !== tableFilter) return false;
+      if (activeTab !== 'ALL_ACTIVE' && status !== activeTab) {
+        return false;
+      }
 
-      // Search query (table number, order id, item name, notes)
+      if (
+        tableFilter !== 'ALL' &&
+        order.tableNumber !== tableFilter
+      ) {
+        return false;
+      }
+
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
-        const matchTable = `table ${order.tableNumber}`.toLowerCase().includes(q) || order.tableNumber.includes(q);
+
+        const matchTable =
+          `table ${order.tableNumber}`.toLowerCase().includes(q) ||
+          order.tableNumber.includes(q);
+
         const matchId = order.id.toLowerCase().includes(q);
-        const matchNotes = order.notes ? order.notes.toLowerCase().includes(q) : false;
-        const matchItem = order.items.some((it) => it.name.toLowerCase().includes(q));
-        if (!matchTable && !matchId && !matchNotes && !matchItem) return false;
+        const matchNotes = order.notes
+          ? order.notes.toLowerCase().includes(q)
+          : false;
+        const matchItem = order.items.some((item) =>
+          item.name.toLowerCase().includes(q),
+        );
+
+        if (!matchTable && !matchId && !matchNotes && !matchItem) {
+          return false;
+        }
       }
 
       return true;
     });
   }, [orders, activeTab, tableFilter, searchQuery]);
 
-  // Helper for calculating elapsed waiting minutes
   const getElapsedInfo = (order: KitchenOrder) => {
     const created = order.createdAt || Date.now();
-    const minutes = Math.max(0, Math.floor((nowTime - created) / 60000));
-    const isUrgent = minutes >= 15 && order.status !== 'Served';
-    const isWarning = minutes >= 8 && minutes < 15 && order.status !== 'Served';
+    const minutes = Math.max(
+      0,
+      Math.floor((nowTime - created) / 60000),
+    );
+    const isUrgent =
+      minutes >= 15 && order.status !== 'Served';
+    const isWarning =
+      minutes >= 8 &&
+      minutes < 15 &&
+      order.status !== 'Served';
+
     return {
       minutes,
       label: minutes < 1 ? 'Just now' : `${minutes}m ago`,
@@ -201,49 +271,114 @@ export const KitchenView: React.FC<KitchenViewProps> = ({
     };
   };
 
+  const statusStyles = (status: OrderStatus) => {
+    switch (status) {
+      case 'Pending':
+        return {
+          dot: 'bg-amber-500',
+          text: 'text-amber-700 dark:text-amber-400',
+          badge:
+            'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300',
+          action:
+            'bg-zinc-950 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100',
+          icon: 'text-amber-600 dark:text-amber-400',
+        };
+      case 'Preparing':
+        return {
+          dot: 'bg-zinc-500',
+          text: 'text-zinc-700 dark:text-zinc-300',
+          badge:
+            'border-zinc-200 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300',
+          action:
+            'bg-zinc-800 text-white hover:bg-zinc-700 dark:bg-zinc-200 dark:text-zinc-950 dark:hover:bg-white',
+          icon: 'text-zinc-600 dark:text-zinc-300',
+        };
+      case 'Ready':
+        return {
+          dot: 'bg-emerald-500',
+          text: 'text-emerald-700 dark:text-emerald-400',
+          badge:
+            'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300',
+          action:
+            'bg-zinc-950 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-100',
+          icon: 'text-emerald-600 dark:text-emerald-400',
+        };
+      case 'Served':
+      default:
+        return {
+          dot: 'bg-zinc-400',
+          text: 'text-zinc-500 dark:text-zinc-400',
+          badge:
+            'border-zinc-200 bg-zinc-100 text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400',
+          action:
+            'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800',
+          icon: 'text-zinc-500',
+        };
+    }
+  };
+
   const kitchenToolbarButtons = (
     <>
       <button
         id="kitchen-view-mode-toggle"
-        onClick={() => setViewMode(viewMode === 'cards' ? 'compact' : 'cards')}
-        title={viewMode === 'cards' ? 'Switch to Compact View' : 'Switch to Cards View'}
-        className="flex h-9 min-h-[38px] items-center justify-center rounded-xl border border-stone-200 bg-white px-2.5 text-stone-600 transition-colors hover:bg-stone-100 hover:text-stone-900 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-white sm:h-10"
+        type="button"
+        onClick={() =>
+          setViewMode(viewMode === 'cards' ? 'compact' : 'cards')
+        }
+        title={
+          viewMode === 'cards'
+            ? 'Switch to Compact View'
+            : 'Switch to Cards View'
+        }
+        className="inline-flex h-9 min-h-[38px] items-center justify-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 text-zinc-600 transition-all hover:bg-zinc-50 hover:text-zinc-950 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-white sm:h-10"
       >
         {viewMode === 'cards' ? (
-          <ListFilter className="h-4 w-4 text-amber-400" />
+          <ListFilter className="h-4 w-4" />
         ) : (
-          <LayoutGrid className="h-4 w-4 text-amber-400" />
+          <LayoutGrid className="h-4 w-4" />
         )}
-        <span className="ml-1.5 hidden text-xs font-semibold lg:inline">
+        <span className="hidden text-xs font-bold md:inline">
           {viewMode === 'cards' ? 'Compact' : 'Cards'}
         </span>
       </button>
 
       <button
         id="kitchen-sound-toggle-btn"
+        type="button"
         onClick={() => {
           unlockAudio();
           setSoundEnabled(!soundEnabled);
         }}
-        title={soundEnabled ? 'Order sound alert ON' : 'Order sound alert OFF'}
-        className={`flex h-9 min-h-[38px] items-center justify-center rounded-xl border px-2.5 text-xs font-semibold transition-all sm:h-10 sm:px-3 ${soundEnabled
-          ? 'border-amber-500/30 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-300 dark:hover:bg-amber-500/20'
-          : 'border-stone-200 bg-stone-50 text-stone-500 hover:bg-stone-100 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-400 dark:hover:bg-stone-800'
+        title={
+          soundEnabled
+            ? 'Order sound alert ON'
+            : 'Order sound alert OFF'
+        }
+        className={`inline-flex h-9 min-h-[38px] items-center justify-center gap-1.5 rounded-xl border px-3 text-xs font-bold transition-all sm:h-10 ${soundEnabled
+            ? 'border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300 dark:hover:bg-amber-500/15'
+            : 'border-zinc-200 bg-zinc-50 text-zinc-500 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800'
           }`}
       >
-        {soundEnabled ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
-        <span className="ml-1.5 hidden md:inline">{soundEnabled ? 'Chime ON' : 'Muted'}</span>
+        {soundEnabled ? (
+          <Bell className="h-4 w-4" />
+        ) : (
+          <BellOff className="h-4 w-4" />
+        )}
+        <span className="hidden md:inline">
+          {soundEnabled ? 'Chime On' : 'Muted'}
+        </span>
       </button>
 
       {!isAdminShell && onSwitchToMenuManagement && (
         <button
           id="kitchen-manage-menu-btn"
+          type="button"
           onClick={onSwitchToMenuManagement}
           title="Manage cafe menu items"
-          className="flex h-9 min-h-[38px] items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/10 px-2.5 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-500/20 dark:text-amber-300 sm:h-10 sm:px-3"
+          className="inline-flex h-9 min-h-[38px] items-center justify-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 text-xs font-bold text-zinc-700 transition-all hover:bg-zinc-50 hover:text-zinc-950 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-white sm:h-10"
         >
-          <Layers className="h-4 w-4 text-amber-400" />
-          <span className="ml-1.5 hidden sm:inline">Menu</span>
+          <Layers className="h-4 w-4" />
+          <span className="hidden sm:inline">Menu</span>
         </button>
       )}
     </>
@@ -255,442 +390,471 @@ export const KitchenView: React.FC<KitchenViewProps> = ({
       onClick={unlockAudio}
       className={
         isAdminShell
-          ? 'pb-6 select-none touch-manipulation text-stone-900 transition-colors duration-200 dark:text-stone-100'
-          : 'min-h-screen bg-stone-100 pb-28 text-stone-900 select-none touch-manipulation transition-colors duration-200 dark:bg-stone-900 dark:text-stone-100'
+          ? 'select-none pb-6 text-zinc-950 touch-manipulation dark:text-zinc-100'
+          : 'min-h-screen select-none bg-zinc-50 pb-28 text-zinc-950 touch-manipulation dark:bg-zinc-950 dark:text-zinc-100'
       }
     >
+      {/* Header */}
       <header
         className={
           isAdminShell
-            ? 'mb-5 flex flex-col gap-4 border-b border-stone-200/80 pb-5 dark:border-stone-800 sm:flex-row sm:items-end sm:justify-between'
-            : 'sticky top-0 z-20 border-b border-stone-200 bg-white/95 px-3 py-2.5 shadow-md backdrop-blur-md transition-colors dark:border-stone-800 dark:bg-stone-950/95 sm:px-6 sm:py-3.5'
+            ? 'mb-5 border-b border-zinc-200 pb-5 dark:border-zinc-800'
+            : 'sticky top-0 z-30 border-b border-zinc-200 bg-white/90 px-3 py-3 shadow-sm backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-950/90 sm:px-6 sm:py-4'
         }
       >
         {isAdminShell ? (
-          <>
-            <div className="min-w-0 space-y-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-xl font-black tracking-tight text-stone-900 dark:text-white sm:text-2xl">
-                  Kitchen Display (KDS)
-                </h1>
-                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <div className="mb-1.5 flex flex-wrap items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-600 dark:text-amber-400">
+                  Kitchen
+                </span>
+
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-2 py-1 text-[10px] font-bold text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
                   <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
                   {counts.active} active
                 </span>
               </div>
-              <p className="max-w-2xl text-xs leading-relaxed text-stone-500 dark:text-stone-400 sm:text-sm">
-                Live order queue — move tickets from Pending through Preparing, Ready, and Served.
+
+              <h1 className="text-2xl font-black tracking-tight text-zinc-950 dark:text-white">
+                Kitchen Display
+              </h1>
+
+              <p className="mt-1 max-w-2xl text-sm text-zinc-500 dark:text-zinc-400">
+                Manage live orders from pending to served.
               </p>
             </div>
-            <div className="flex shrink-0 flex-wrap items-center gap-1.5 sm:gap-2.5">
+
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
               {kitchenToolbarButtons}
             </div>
-          </>
+          </div>
         ) : (
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 sm:gap-4">
-            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/20 text-amber-400 shadow-inner sm:h-10 sm:w-10">
-                <ChefHat className="h-4 w-4 sm:h-5 sm:w-5" />
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-zinc-950 text-amber-400 shadow-sm dark:bg-white dark:text-zinc-950">
+                <ChefHat className="h-5 w-5" />
               </div>
+
               <div className="min-w-0">
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  <h1 className="truncate text-sm font-black tracking-tight text-stone-900 dark:text-white sm:text-base md:text-lg">
+                <div className="flex items-center gap-2">
+                  <h1 className="truncate text-sm font-black tracking-tight text-zinc-950 dark:text-white sm:text-base md:text-lg">
                     Kitchen Display
                   </h1>
-                  <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-emerald-500/30 bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-bold text-emerald-400 sm:px-2 sm:text-[11px]">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-                    <span>{counts.active} Active</span>
+
+                  <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-2 py-1 text-[10px] font-bold text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                    {counts.active}
                   </span>
                 </div>
-                <p className="hidden text-[11px] text-stone-500 dark:text-stone-400 md:block">
-                  Staff updates: Pending → Preparing → Ready → Served
+
+                <p className="hidden text-[11px] text-zinc-500 dark:text-zinc-400 md:block">
+                  Pending → Preparing → Ready → Served
                 </p>
               </div>
             </div>
-            <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
+
+            <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
               {kitchenToolbarButtons}
             </div>
           </div>
         )}
       </header>
 
-      {/* Main Kitchen Display Container */}
-      <main className={isAdminShell ? 'space-y-4' : 'mx-auto max-w-7xl px-3 pt-4 sm:px-6 sm:pt-6'}>
-
-        {/* Mobile Audio Warning Banner (if browser blocked sound autoplay) */}
+      <main
+        className={
+          isAdminShell
+            ? 'space-y-4'
+            : 'mx-auto max-w-7xl space-y-5 px-3 pt-4 sm:px-6 sm:pt-6'
+        }
+      >
+        {/* Audio warning */}
         {!audioUnlocked && soundEnabled && (
-          <div
+          <button
+            type="button"
             onClick={unlockAudio}
-            className="mb-4 flex items-center justify-between gap-2 p-2.5 sm:p-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-500/15 transition-all"
+            className="flex w-full items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-3.5 py-3 text-left text-xs text-amber-900 transition-colors hover:bg-amber-100 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200 dark:hover:bg-amber-500/15"
           >
-            <div className="flex items-center gap-2 min-w-0">
-              <Volume2 className="h-4 w-4 shrink-0 text-amber-400 animate-bounce" />
-              <span className="truncate">Tap here to enable audible order chimes for mobile</span>
-            </div>
-            <span className="px-2 py-0.5 rounded bg-amber-500/20 text-[11px] font-bold shrink-0">
-              Enable Sound
+            <span className="flex min-w-0 items-center gap-2.5">
+              <Volume2 className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+              <span className="truncate">
+                Enable order chimes on this device.
+              </span>
             </span>
-          </div>
+
+            <span className="shrink-0 rounded-lg bg-amber-500/10 px-2 py-1 text-[10px] font-black text-amber-800 dark:text-amber-300">
+              Enable
+            </span>
+          </button>
         )}
 
-        {/* Stage Filter Navigation Tabs - Horizontally Scrollable on Mobile */}
-        <div className="pb-3 sm:pb-4 border-b border-stone-200 dark:border-stone-800 space-y-3 mb-4 sm:mb-6">
-          <div className="flex items-center justify-between gap-2">
-
-            {/* Scrollable Stage Pills */}
-            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-1 w-full max-w-full">
-              {/* ALL ACTIVE */}
-              <button
-                id="tab-all-active"
-                onClick={() => setActiveTab('ALL_ACTIVE')}
-                className={`flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 min-h-[40px] ${activeTab === 'ALL_ACTIVE'
-                  ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 shadow-sm'
-                  : 'bg-stone-200 dark:bg-stone-800/80 text-stone-600 dark:text-stone-400 hover:bg-stone-300 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-stone-200'
-                  }`}
-              >
-                <span>Active</span>
-
-                <span
-                  className={`px-1.5 py-0.5 rounded text-[10px] font-black ${activeTab === 'ALL_ACTIVE'
-                    ? 'bg-stone-300 text-stone-900 dark:bg-stone-700 dark:text-stone-200'
-                    : 'bg-stone-300 text-stone-600 dark:bg-stone-700 dark:text-stone-300'
-                    }`}
-                >
-                  {counts.active}
-                </span>
-              </button>
-
-              {/* PENDING */}
-              <button
-                id="tab-pending"
-                onClick={() => setActiveTab('Pending')}
-                className={`flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 min-h-[40px] ${activeTab === 'Pending'
-                  ? 'bg-amber-500 text-stone-950 shadow-sm'
-                  : 'bg-stone-200 dark:bg-stone-800/80 text-amber-700 dark:text-amber-300 hover:bg-stone-300 dark:hover:bg-stone-800 hover:text-amber-800 dark:hover:text-amber-200'
-                  }`}
-              >
-                <Clock className="h-3.5 w-3.5" />
-                <span>Pending</span>
-
-                <span
-                  className={`px-1.5 py-0.5 rounded text-[10px] font-black ${activeTab === 'Pending'
-                    ? 'bg-stone-900 text-amber-400 dark:bg-stone-950 dark:text-amber-400'
-                    : 'bg-amber-500/20 text-amber-700 dark:text-amber-300'
-                    }`}
-                >
-                  {counts.p}
-                </span>
-              </button>
-
-              {/* PREPARING */}
-              <button
-                id="tab-preparing"
-                onClick={() => setActiveTab('Preparing')}
-                className={`flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 min-h-[40px] ${activeTab === 'Preparing'
-                  ? 'bg-sky-500 text-stone-950 shadow-sm'
-                  : 'bg-stone-200 dark:bg-stone-800/80 text-sky-700 dark:text-sky-300 hover:bg-stone-300 dark:hover:bg-stone-800 hover:text-sky-800 dark:hover:text-sky-200'
-                  }`}
-              >
-                <Flame className="h-3.5 w-3.5" />
-                <span>Preparing</span>
-
-                <span
-                  className={`px-1.5 py-0.5 rounded text-[10px] font-black ${activeTab === 'Preparing'
-                    ? 'bg-stone-900 text-sky-400 dark:bg-stone-950 dark:text-sky-400'
-                    : 'bg-sky-500/20 text-sky-700 dark:text-sky-300'
-                    }`}
-                >
-                  {counts.prep}
-                </span>
-              </button>
-
-              {/* READY */}
-              <button
-                id="tab-ready"
-                onClick={() => setActiveTab('Ready')}
-                className={`flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 min-h-[40px] ${activeTab === 'Ready'
-                  ? 'bg-emerald-500 text-stone-950 shadow-sm'
-                  : 'bg-stone-200 dark:bg-stone-800/80 text-emerald-700 dark:text-emerald-300 hover:bg-stone-300 dark:hover:bg-stone-800 hover:text-emerald-800 dark:hover:text-emerald-200'
-                  }`}
-              >
-                <Bell className="h-3.5 w-3.5" />
-                <span>Ready</span>
-
-                <span
-                  className={`px-1.5 py-0.5 rounded text-[10px] font-black ${activeTab === 'Ready'
-                    ? 'bg-stone-900 text-emerald-400 dark:bg-stone-950 dark:text-emerald-400'
-                    : 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                    }`}
-                >
-                  {counts.r}
-                </span>
-              </button>
-
-              {/* SERVED */}
-              <button
-                id="tab-served"
-                onClick={() => setActiveTab('Served')}
-                className={`flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 min-h-[40px] ${activeTab === 'Served'
-                  ? 'bg-purple-500 text-stone-950 shadow-sm'
-                  : 'bg-stone-200 dark:bg-stone-800/80 text-purple-700 dark:text-purple-300 hover:bg-stone-300 dark:hover:bg-stone-800 hover:text-purple-800 dark:hover:text-purple-200'
-                  }`}
-              >
-                <CheckCheck className="h-3.5 w-3.5" />
-                <span>Served</span>
-
-                <span
-                  className={`px-1.5 py-0.5 rounded text-[10px] font-black ${activeTab === 'Served'
-                    ? 'bg-stone-900 text-purple-400 dark:bg-stone-950 dark:text-purple-400'
-                    : 'bg-purple-500/20 text-purple-700 dark:text-purple-300'
-                    }`}
-                >
-                  {counts.s}
-                </span>
-              </button>
-            </div>
-
-            {/* Quick Refresh Status */}
+        {/* Filters */}
+        <section className="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="flex items-center gap-1.5 overflow-x-auto border-b border-zinc-100 px-2.5 py-2 no-scrollbar dark:border-zinc-900 sm:px-3">
             <button
-              onClick={refreshOrders}
-              className="flex items-center gap-1 text-[11px] text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-900 dark:text-white transition-colors shrink-0 p-1.5"
-              title="Tap to refresh orders"
+              id="tab-all-active"
+              type="button"
+              onClick={() => setActiveTab('ALL_ACTIVE')}
+              className={`inline-flex min-h-[38px] shrink-0 items-center gap-1.5 rounded-lg px-3 text-xs font-black transition-all ${activeTab === 'ALL_ACTIVE'
+                  ? 'bg-zinc-950 text-white dark:bg-white dark:text-zinc-950'
+                  : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-white'
+                }`}
             >
-              <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin text-amber-400' : ''}`} />
+              Active
+              <span className="rounded-md bg-black/5 px-1.5 py-0.5 text-[10px] dark:bg-white/10">
+                {counts.active}
+              </span>
+            </button>
+
+            <button
+              id="tab-pending"
+              type="button"
+              onClick={() => setActiveTab('Pending')}
+              className={`inline-flex min-h-[38px] shrink-0 items-center gap-1.5 rounded-lg px-3 text-xs font-black transition-all ${activeTab === 'Pending'
+                  ? 'bg-amber-500 text-zinc-950'
+                  : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-white'
+                }`}
+            >
+              <Clock className="h-3.5 w-3.5" />
+              Pending
+              <span className="rounded-md bg-black/5 px-1.5 py-0.5 text-[10px] dark:bg-white/10">
+                {counts.p}
+              </span>
+            </button>
+
+            <button
+              id="tab-preparing"
+              type="button"
+              onClick={() => setActiveTab('Preparing')}
+              className={`inline-flex min-h-[38px] shrink-0 items-center gap-1.5 rounded-lg px-3 text-xs font-black transition-all ${activeTab === 'Preparing'
+                  ? 'bg-zinc-900 text-white dark:bg-zinc-200 dark:text-zinc-950'
+                  : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-white'
+                }`}
+            >
+              <Flame className="h-3.5 w-3.5" />
+              Preparing
+              <span className="rounded-md bg-black/5 px-1.5 py-0.5 text-[10px] dark:bg-white/10">
+                {counts.prep}
+              </span>
+            </button>
+
+            <button
+              id="tab-ready"
+              type="button"
+              onClick={() => setActiveTab('Ready')}
+              className={`inline-flex min-h-[38px] shrink-0 items-center gap-1.5 rounded-lg px-3 text-xs font-black transition-all ${activeTab === 'Ready'
+                  ? 'bg-zinc-900 text-white dark:bg-zinc-200 dark:text-zinc-950'
+                  : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-white'
+                }`}
+            >
+              <Bell className="h-3.5 w-3.5" />
+              Ready
+              <span className="rounded-md bg-black/5 px-1.5 py-0.5 text-[10px] dark:bg-white/10">
+                {counts.r}
+              </span>
+            </button>
+
+            <button
+              id="tab-served"
+              type="button"
+              onClick={() => setActiveTab('Served')}
+              className={`inline-flex min-h-[38px] shrink-0 items-center gap-1.5 rounded-lg px-3 text-xs font-black transition-all ${activeTab === 'Served'
+                  ? 'bg-zinc-900 text-white dark:bg-zinc-200 dark:text-zinc-950'
+                  : 'text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-white'
+                }`}
+            >
+              <CheckCheck className="h-3.5 w-3.5" />
+              Served
+              <span className="rounded-md bg-black/5 px-1.5 py-0.5 text-[10px] dark:bg-white/10">
+                {counts.s}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={refreshOrders}
+              className="ml-auto inline-flex min-h-[38px] shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[10px] font-bold text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-950 dark:hover:bg-zinc-900 dark:hover:text-white"
+              title="Refresh orders"
+            >
+              <RefreshCw
+                className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''
+                  }`}
+              />
               <span className="hidden sm:inline">
-                Synced {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                Synced{' '}
+                {lastUpdated.toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
               </span>
             </button>
           </div>
 
-          {/* Quick Filter Strip: Search and Table Numbers on Mobile */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-1">
+          <div className="flex flex-col gap-3 p-3 sm:p-3.5 lg:flex-row lg:items-center">
+            {/* Search */}
+            <div className="relative min-w-0 flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
 
-            {/* Search Input */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-stone-500 dark:text-stone-400 dark:text-stone-500" />
               <input
                 id="kds-search-input"
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search table, item, or note..."
-                className="w-full bg-white dark:bg-stone-950/80 border border-stone-200 dark:border-stone-800 rounded-xl pl-8 pr-3 py-2 text-xs text-stone-900 dark:text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 focus:outline-none focus:border-amber-400/60 transition-colors min-h-[38px]"
+                placeholder="Search table, order, item, or note..."
+                className="min-h-[42px] w-full rounded-xl border border-zinc-200 bg-zinc-50 pl-9 pr-9 text-xs font-medium text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:border-amber-500 focus:bg-white focus:ring-4 focus:ring-amber-500/10 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:focus:bg-zinc-900"
               />
+
               {searchQuery && (
                 <button
+                  type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-900 dark:text-white text-xs px-1"
+                  className="absolute right-2.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-lg text-zinc-400 hover:bg-zinc-200 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-white"
+                  aria-label="Clear search"
                 >
-                  ✕
+                  ×
                 </button>
               )}
             </div>
 
-            {/* Table Number Filter Pills */}
+            {/* Table filters */}
             {uniqueTables.length > 0 && (
-              <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
+              <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto no-scrollbar">
                 <button
+                  type="button"
                   onClick={() => setTableFilter('ALL')}
-                  className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap min-h-[36px] ${tableFilter === 'ALL'
-                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                    : 'bg-stone-200 dark:bg-stone-800/80 text-stone-600 dark:text-stone-400 hover:bg-stone-300 dark:hover:bg-stone-800 border border-transparent'
+                  className={`min-h-[36px] shrink-0 rounded-lg border px-3 text-[10px] font-black transition-all ${tableFilter === 'ALL'
+                      ? 'border-zinc-950 bg-zinc-950 text-white dark:border-white dark:bg-white dark:text-zinc-950'
+                      : 'border-zinc-200 bg-white text-zinc-500 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900'
                     }`}
                 >
                   All Tables
                 </button>
-                {uniqueTables.map((tbl) => (
+
+                {uniqueTables.map((table) => (
                   <button
-                    key={tbl}
-                    onClick={() => setTableFilter(tbl)}
-                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap min-h-[36px] ${tableFilter === tbl
-                      ? 'bg-amber-500 text-stone-950 shadow-sm'
-                      : 'bg-stone-200 dark:bg-stone-800/80 text-stone-700 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-800 border border-transparent'
+                    key={table}
+                    type="button"
+                    onClick={() => setTableFilter(table)}
+                    className={`min-h-[36px] shrink-0 rounded-lg border px-3 text-[10px] font-black transition-all ${tableFilter === table
+                        ? 'border-amber-500 bg-amber-500 text-zinc-950'
+                        : 'border-zinc-200 bg-white text-zinc-500 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900'
                       }`}
                   >
-                    T-{tbl}
+                    T-{table}
                   </button>
                 ))}
               </div>
             )}
           </div>
-        </div>
+        </section>
 
-        {/* Loading State */}
+        {/* Loading */}
         {loading && orders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-stone-500 dark:text-stone-400 space-y-3">
-            <RefreshCw className="h-8 w-8 animate-spin text-amber-400" />
-            <p className="text-sm">Connecting to live kitchen feed...</p>
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-zinc-200 bg-white py-20 text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
+            <RefreshCw className="h-7 w-7 animate-spin text-amber-500" />
+            <p className="mt-3 text-sm">
+              Connecting to kitchen feed...
+            </p>
           </div>
         ) : filteredOrders.length === 0 ? (
-          /* Empty State */
+          /* Empty */
           <div
             id="kitchen-empty-state"
-            className="flex flex-col items-center justify-center py-16 px-4 text-center rounded-3xl border border-stone-200 dark:border-stone-800/80 bg-white/70 dark:bg-stone-950/40 transition-colors"
+            className="flex min-h-[340px] flex-col items-center justify-center rounded-[26px] border border-dashed border-zinc-300 bg-white px-5 text-center dark:border-zinc-800 dark:bg-zinc-950"
           >
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-4">
-              <CheckCircle2 className="h-8 w-8" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400">
+              <CheckCircle2 className="h-7 w-7" />
             </div>
-            <h2 className="text-lg sm:text-xl font-bold text-stone-900 dark:text-stone-900 dark:text-white tracking-tight">
+
+            <h2 className="mt-4 text-lg font-black tracking-tight text-zinc-950 dark:text-white sm:text-xl">
               {searchQuery || tableFilter !== 'ALL'
                 ? 'No orders match this filter'
                 : activeTab === 'ALL_ACTIVE'
-                  ? 'No active orders in kitchen queue'
+                  ? 'No active orders'
                   : `No ${activeTab} orders`}
             </h2>
-            <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 max-w-sm mt-1.5">
+
+            <p className="mt-1.5 max-w-sm text-xs leading-relaxed text-zinc-500 dark:text-zinc-400 sm:text-sm">
               {searchQuery || tableFilter !== 'ALL'
-                ? 'Try resetting the search or table filter.'
-                : 'When a customer places an order from their table QR, it will appear here instantly.'}
+                ? 'Try clearing the search or table filter.'
+                : 'New customer orders will appear here automatically.'}
             </p>
-            <div className="mt-5 flex flex-wrap gap-2 justify-center">
+
+            <div className="mt-5 flex flex-wrap justify-center gap-2">
               {(searchQuery || tableFilter !== 'ALL') && (
                 <button
+                  type="button"
                   onClick={() => {
                     setSearchQuery('');
                     setTableFilter('ALL');
                   }}
-                  className="rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 px-4 py-2 text-xs font-semibold text-stone-700 dark:text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors"
+                  className="min-h-[42px] rounded-xl border border-zinc-200 bg-white px-4 text-xs font-bold text-zinc-700 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
                 >
                   Clear Filters
                 </button>
               )}
+
               <button
+                type="button"
                 onClick={() => onSwitchToCustomer('5')}
-                className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-stone-950 hover:bg-amber-400 transition-colors shadow-sm min-h-[42px]"
+                className="inline-flex min-h-[42px] items-center gap-2 rounded-xl bg-zinc-950 px-4 text-xs font-black text-white shadow-sm transition-all hover:bg-zinc-800 active:scale-[0.98] dark:bg-amber-500 dark:text-zinc-950 dark:hover:bg-amber-400"
               >
                 <UtensilsCrossed className="h-3.5 w-3.5" />
-                <span>Simulate Order (Table 5)</span>
+                Simulate Order
               </button>
             </div>
           </div>
         ) : viewMode === 'compact' ? (
-          /* Compact Expedite List View for High-Volume Mobile Screens */
+          /* Compact list */
           <div id="kitchen-compact-list" className="space-y-3">
             {filteredOrders.map((order) => {
-              const status: OrderStatus = order.status || 'Pending';
+              const status: OrderStatus =
+                order.status || 'Pending';
               const isUpdating = updatingId === order.id;
               const elapsed = getElapsedInfo(order);
+              const palette = statusStyles(status);
 
               return (
                 <div
                   key={order.id}
                   id={`kitchen-order-compact-${order.id}`}
-                  className={`rounded-2xl border bg-white dark:bg-white dark:bg-stone-900/95 p-3.5 sm:p-4 shadow-md transition-all ${status === 'Pending'
-                    ? 'border-amber-500/60 ring-1 ring-amber-500/20'
-                    : status === 'Preparing'
-                      ? 'border-sky-500/60 ring-1 ring-sky-500/20'
-                      : status === 'Ready'
-                        ? 'border-emerald-500/60 ring-1 ring-emerald-500/20'
-                        : 'border-stone-200 dark:border-stone-700/80 opacity-80'
+                  className={`rounded-2xl border bg-white p-3.5 shadow-sm transition-all dark:bg-zinc-950 sm:p-4 ${status === 'Served'
+                      ? 'border-zinc-200 opacity-75 dark:border-zinc-800'
+                      : 'border-zinc-200 dark:border-zinc-800'
                     }`}
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-stone-200 dark:border-stone-700/60">
-                    <div className="flex items-center justify-between sm:justify-start gap-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl sm:text-2xl font-black text-stone-900 dark:text-stone-900 dark:text-white">
+                  <div className="flex flex-col gap-3 border-b border-zinc-100 pb-3 dark:border-zinc-900 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className="text-lg font-black tracking-tight text-zinc-950 dark:text-white sm:text-xl">
                           Table {order.tableNumber}
                         </span>
-                        <span className="text-[11px] font-mono text-stone-500 dark:text-stone-400">
+                        <span className="font-mono text-[10px] text-zinc-400">
                           #{order.id}
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-1.5">
-                        <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${elapsed.isUrgent
-                          ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse'
-                          : elapsed.isWarning
-                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                            : 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700'
-                          }`}>
-                          <Clock className="inline h-3 w-3 mr-1" />
+                      <div className="mt-1 flex items-center gap-1.5">
+                        <Clock className="h-3 w-3 text-zinc-400" />
+                        <span
+                          className={`text-[10px] font-bold ${elapsed.isUrgent
+                              ? 'text-rose-600 dark:text-rose-400'
+                              : elapsed.isWarning
+                                ? 'text-amber-700 dark:text-amber-400'
+                                : 'text-zinc-400'
+                            }`}
+                        >
                           {elapsed.label}
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between sm:justify-end gap-2">
-                      {/* Status Tag */}
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${status === 'Pending'
-                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                        : status === 'Preparing'
-                          ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
-                          : status === 'Ready'
-                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                            : 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
-                        }`}>
+                    <div className="flex items-center justify-between gap-2 sm:justify-end">
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ${palette.badge}`}
+                      >
+                        <span
+                          className={`h-1.5 w-1.5 rounded-full ${palette.dot}`}
+                        />
                         {status}
                       </span>
 
-                      <span className="font-mono text-sm font-bold text-stone-900 dark:text-stone-900 dark:text-white">
+                      <span className="font-mono text-sm font-black text-zinc-950 dark:text-white">
                         ₹{order.total.toLocaleString('en-IN')}
                       </span>
                     </div>
                   </div>
 
-                  {/* Customer Instructions */}
                   {order.notes && (
-                    <div className="my-2 flex items-start gap-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 p-2 text-xs text-amber-200">
-                      <AlertCircle className="h-3.5 w-3.5 text-amber-400 shrink-0 mt-0.5" />
+                    <div className="mt-3 flex items-start gap-2 rounded-xl border border-zinc-200 bg-zinc-50 p-2.5 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+                      <StickyNote className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
                       <div>
-                        <span className="font-bold text-amber-300">Note: </span>
+                        <span className="font-black text-zinc-800 dark:text-zinc-200">
+                          Note:{' '}
+                        </span>
                         <span>{order.notes}</span>
                       </div>
                     </div>
                   )}
 
-                  {/* Condensed Items */}
-                  <div className="py-2 flex flex-wrap gap-1.5">
-                    {order.items.map((it, idx) => (
+                  <div className="flex flex-wrap gap-1.5 py-3">
+                    {order.items.map((item, idx) => (
                       <span
                         key={idx}
-                        className="inline-flex items-center gap-1.5 bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-700/80 px-2 py-1 rounded-lg text-xs"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 text-[11px] dark:border-zinc-800 dark:bg-zinc-900"
                       >
-                        <span className="font-mono font-bold text-amber-400">{it.quantity}×</span>
-                        <span className="text-stone-700 dark:text-stone-700 dark:text-stone-200">{it.name}</span>
+                        <span className="font-mono font-black text-amber-600 dark:text-amber-400">
+                          {item.quantity}×
+                        </span>
+                        <span className="font-semibold text-zinc-700 dark:text-zinc-300">
+                          {item.name}
+                        </span>
                       </span>
                     ))}
                   </div>
 
-                  {/* Compact Quick Actions */}
-                  <div className="pt-2 flex flex-wrap sm:flex-nowrap items-center gap-2">
+                  <div className="flex flex-wrap gap-2 pt-1">
                     {status === 'Pending' && (
                       <button
-                        onClick={() => handleUpdateStatus(order.id, 'Preparing')}
+                        type="button"
+                        onClick={() =>
+                          handleUpdateStatus(order.id, 'Preparing')
+                        }
                         disabled={isUpdating}
-                        className="flex-1 min-h-[46px] flex items-center justify-center gap-1.5 rounded-xl bg-sky-600 px-4 py-2.5 font-bold text-xs sm:text-sm  dark:text-white hover:bg-sky-500 active:scale-98"
+                        className={`min-h-[44px] flex-1 rounded-xl px-4 text-xs font-black transition-all disabled:opacity-50 ${palette.action}`}
                       >
-                        <Flame className="h-4 w-4" />
-                        <span>Start Preparing</span>
+                        <span className="inline-flex items-center justify-center gap-1.5">
+                          <Flame className="h-4 w-4" />
+                          Start Preparing
+                        </span>
                       </button>
                     )}
+
                     {status === 'Preparing' && (
                       <button
-                        onClick={() => handleUpdateStatus(order.id, 'Ready')}
+                        type="button"
+                        onClick={() =>
+                          handleUpdateStatus(order.id, 'Ready')
+                        }
                         disabled={isUpdating}
-                        className="flex-1 min-h-[46px] flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 font-bold text-xs sm:text-sm text-stone-900 dark:text-white hover:bg-emerald-500 active:scale-98"
+                        className={`min-h-[44px] flex-1 rounded-xl px-4 text-xs font-black transition-all disabled:opacity-50 ${palette.action}`}
                       >
-                        <Bell className="h-4 w-4" />
-                        <span>Mark Ready</span>
+                        <span className="inline-flex items-center justify-center gap-1.5">
+                          <Bell className="h-4 w-4" />
+                          Mark Ready
+                        </span>
                       </button>
                     )}
+
                     {status === 'Ready' && (
                       <button
-                        onClick={() => handleUpdateStatus(order.id, 'Served')}
+                        type="button"
+                        onClick={() =>
+                          handleUpdateStatus(order.id, 'Served')
+                        }
                         disabled={isUpdating}
-                        className="flex-1 min-h-[46px] flex items-center justify-center gap-1.5 rounded-xl bg-purple-600 px-4 py-2.5 font-bold text-xs sm:text-sm text-stone-900 dark:text-white hover:bg-purple-500 active:scale-98"
+                        className={`min-h-[44px] flex-1 rounded-xl px-4 text-xs font-black transition-all disabled:opacity-50 ${palette.action}`}
                       >
-                        <CheckCheck className="h-4 w-4" />
-                        <span>Mark Served</span>
+                        <span className="inline-flex items-center justify-center gap-1.5">
+                          <CheckCheck className="h-4 w-4" />
+                          Mark Served
+                        </span>
                       </button>
                     )}
+
                     {status === 'Served' && (
                       <button
-                        onClick={() => handleDismissOrder(order.id)}
+                        type="button"
+                        onClick={() =>
+                          handleDismissOrder(order.id)
+                        }
                         disabled={isUpdating}
-                        className="flex-1 min-h-[46px] flex items-center justify-center gap-1.5 rounded-xl bg-stone-200 dark:bg-stone-700 px-4 py-2.5 font-bold text-xs text-stone-800 dark:text-stone-300 hover:bg-stone-300 dark:hover:bg-stone-600 active:scale-98"
+                        className="min-h-[44px] flex-1 rounded-xl bg-zinc-100 px-4 text-xs font-black text-zinc-700 transition-all hover:bg-zinc-200 disabled:opacity-50 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
-                        <span>Dismiss</span>
+                        <span className="inline-flex items-center justify-center gap-1.5">
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Dismiss
+                        </span>
                       </button>
                     )}
                   </div>
@@ -699,208 +863,259 @@ export const KitchenView: React.FC<KitchenViewProps> = ({
             })}
           </div>
         ) : (
-          /* Cards View - Fully Responsive Grid */
+          /* Cards */
           <div
             id="kitchen-orders-grid"
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5"
+            className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
           >
             {filteredOrders.map((order) => {
-              const status: OrderStatus = order.status || 'Pending';
+              const status: OrderStatus =
+                order.status || 'Pending';
               const isUpdating = updatingId === order.id;
               const elapsed = getElapsedInfo(order);
+              const palette = statusStyles(status);
 
               return (
-                <div
+                <article
                   key={order.id}
                   id={`kitchen-order-${order.id}`}
-                  className={`flex flex-col justify-between rounded-2xl border bg-white  dark:bg-stone-900/95 p-4 sm:p-5 shadow-xl transition-colors duration-200 transition-all relative overflow-hidden ${status === 'Pending'
-                    ? 'border-amber-500/60 ring-1 ring-amber-500/30'
-                    : status === 'Preparing'
-                      ? 'border-sky-500/60 ring-1 ring-sky-500/30'
-                      : status === 'Ready'
-                        ? 'border-emerald-500/60 ring-1 ring-emerald-500/30'
-                        : 'border-stone-200 dark:border-stone-700/80 opacity-85'
+                  className={`group relative flex flex-col overflow-hidden rounded-[24px] border bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg dark:bg-zinc-950 ${status === 'Served'
+                      ? 'border-zinc-200 opacity-75 dark:border-zinc-800'
+                      : 'border-zinc-200 dark:border-zinc-800'
                     }`}
                 >
-                  {/* Top Bar: Table Number, Wait Timer & Status Badge */}
-                  <div>
-                    <div className="flex items-start justify-between gap-2 pb-3 border-b border-stone-200 dark:border-stone-700/60">
-                      <div>
+                  {/* Minimal status accent */}
+                  <div
+                    className={`h-1 w-full ${status === 'Pending'
+                        ? 'bg-amber-500'
+                        : status === 'Ready'
+                          ? 'bg-emerald-500'
+                          : 'bg-zinc-300 dark:bg-zinc-700'
+                      }`}
+                  />
+
+                  <div className="flex flex-1 flex-col p-4 sm:p-5">
+                    {/* Order top */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-2xl sm:text-3xl font-black tracking-tight text-stone-900 dark:text-stone-900 dark:text-white">
+                          <h2 className="truncate text-xl font-black tracking-tight text-zinc-950 dark:text-white">
                             Table {order.tableNumber}
-                          </span>
+                          </h2>
                         </div>
-                        <div className="flex items-center gap-2 text-[11px] font-mono text-stone-500 dark:text-stone-400 mt-0.5">
+
+                        <div className="mt-1 flex flex-wrap items-center gap-1.5 font-mono text-[10px] text-zinc-400">
                           <span>Order #{order.id}</span>
                           <span>•</span>
                           <span>{order.timestamp}</span>
                         </div>
                       </div>
 
-                      <div className="flex flex-col items-end gap-1.5">
-                        {/* Elapsed Timer Tag */}
-                        <div className={`flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-lg border font-semibold ${elapsed.isUrgent
-                          ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 animate-pulse'
-                          : elapsed.isWarning
-                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                            : 'bg-stone-100 dark:bg-stone-900 text-stone-600 dark:text-stone-300 border-stone-200 dark:border-stone-700'
-                          }`}>
+                      <div className="shrink-0 text-right">
+                        <div
+                          className={`inline-flex items-center gap-1.5 rounded-lg border px-2 py-1 font-mono text-[10px] font-bold ${elapsed.isUrgent
+                              ? 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-300'
+                              : elapsed.isWarning
+                                ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300'
+                                : 'border-zinc-200 bg-zinc-50 text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400'
+                            }`}
+                        >
                           <Clock className="h-3 w-3" />
-                          <span>{elapsed.label}</span>
+                          {elapsed.label}
                         </div>
 
-                        {/* Status Badge */}
-                        <div className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${status === 'Pending'
-                          ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                          : status === 'Preparing'
-                            ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
-                            : status === 'Ready'
-                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
-                              : 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
-                          }`}>
-                          <span className={`h-1.5 w-1.5 rounded-full ${status === 'Pending'
-                            ? 'bg-amber-400 animate-pulse'
-                            : status === 'Preparing'
-                              ? 'bg-sky-400 animate-pulse'
-                              : status === 'Ready'
-                                ? 'bg-emerald-400'
-                                : 'bg-purple-400'
-                            }`} />
-                          <span>{status}</span>
+                        <div
+                          className={`mt-2 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ${palette.badge}`}
+                        >
+                          <span
+                            className={`h-1.5 w-1.5 rounded-full ${palette.dot}`}
+                          />
+                          {status}
                         </div>
                       </div>
                     </div>
 
-                    {/* Customer Instructions / Allergies Alert */}
+                    {/* Note */}
                     {order.notes && (
-                      <div className="mt-3 flex items-start gap-2 rounded-xl bg-amber-500/15 border border-amber-500/30 p-2.5 text-xs text-amber-200">
-                        <StickyNote className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-                        <div>
-                          <span className="font-bold text-amber-300">Customer Note: </span>
-                          <span className="font-medium text-amber-100">{order.notes}</span>
+                      <div className="mt-4 flex items-start gap-2.5 rounded-2xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900">
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white text-amber-600 shadow-sm dark:bg-zinc-950 dark:text-amber-400">
+                          <StickyNote className="h-3.5 w-3.5" />
+                        </div>
+
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-black uppercase tracking-wide text-zinc-400">
+                            Customer note
+                          </p>
+                          <p className="mt-0.5 text-xs font-medium leading-relaxed text-zinc-700 dark:text-zinc-300">
+                            {order.notes}
+                          </p>
                         </div>
                       </div>
                     )}
 
-                    {/* Order Items List (High Legibility for Mobile) */}
-                    <div className="py-3 space-y-2.5">
-                      {order.items.map((item, i) => (
+                    {/* Items */}
+                    <div className="mt-4 flex-1 space-y-1">
+                      {order.items.map((item, index) => (
                         <div
-                          key={i}
-                          className="flex items-center justify-between text-sm py-1 border-b border-stone-200 dark:border-stone-200 dark:border-stone-700/30 last:border-0"
+                          key={index}
+                          className="flex items-center gap-2.5 border-b border-zinc-100 py-2 last:border-0 dark:border-zinc-900"
                         >
-                          <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                            {item.image && (
-                              <img
-                                src={item.image}
-                                alt={item.name}
-                                className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg object-cover border border-stone-200 dark:border-stone-300 dark:border-stone-700 shrink-0"
-                                referrerPolicy="no-referrer"
-                              />
-                            )}
-                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-stone-200 dark:bg-stone-200 dark:bg-stone-700/90 text-stone-900 dark:text-stone-900 dark:text-white font-mono font-black text-xs sm:text-sm">
-                              {item.quantity}×
-                            </span>
-                            <span className="font-bold text-stone-900 dark:text-stone-100 truncate text-sm">
-                              {item.name}
-                            </span>
-                          </div>
-                          <span className="font-mono text-xs text-stone-500 dark:text-stone-400 shrink-0">
-                            ₹{(item.price * item.quantity).toLocaleString('en-IN')}
+                          {item.image ? (
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="h-9 w-9 shrink-0 rounded-lg border border-zinc-200 object-cover dark:border-zinc-800"
+                              referrerPolicy="no-referrer"
+                            />
+                          ) : (
+                            <div className="h-9 w-9 shrink-0 rounded-lg bg-zinc-100 dark:bg-zinc-900" />
+                          )}
+
+                          <span className="flex h-7 min-w-7 shrink-0 items-center justify-center rounded-md bg-zinc-100 px-1.5 text-[11px] font-black text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
+                            {item.quantity}×
+                          </span>
+
+                          <span className="min-w-0 flex-1 truncate text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                            {item.name}
+                          </span>
+
+                          <span className="shrink-0 font-mono text-[10px] font-semibold text-zinc-400">
+                            ₹
+                            {(
+                              item.price * item.quantity
+                            ).toLocaleString('en-IN')}
                           </span>
                         </div>
                       ))}
                     </div>
-                  </div>
 
-                  {/* Footer: Multi-Stage Controls (Mobile Touch Optimized) */}
-                  <div className="pt-3 border-t border-stone-200 dark:border-stone-700/60 space-y-3">
-                    <div className="flex justify-between items-center text-xs font-mono">
-                      <span className="text-stone-500 dark:text-stone-400">Total Bill</span>
-                      <span className="text-sm sm:text-base font-black text-stone-900 dark:text-stone-900 dark:text-white">
+                    {/* Total */}
+                    <div className="mt-4 flex items-center justify-between border-t border-zinc-100 pt-4 dark:border-zinc-900">
+                      <span className="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-400">
+                        Total
+                      </span>
+
+                      <span className="font-mono text-base font-black text-zinc-950 dark:text-white">
                         ₹{order.total.toLocaleString('en-IN')}
                       </span>
                     </div>
 
-                    {/* Stage Progression Primary Button (Minimum 48px Touch Target) */}
-                    {status === 'Pending' && (
-                      <button
-                        id={`btn-prep-${order.id}`}
-                        onClick={() => handleUpdateStatus(order.id, 'Preparing')}
-                        disabled={isUpdating}
-                        className="w-full min-h-[48px] flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-sky-600 text-white font-black text-sm hover:bg-sky-500 active:scale-98 transition-all shadow-md hover:shadow-sky-600/20 disabled:opacity-50"
-                      >
-                        <Flame className="h-4 w-4" />
-                        <span>Start Preparing</span>
-                      </button>
-                    )}
+                    {/* Primary action */}
+                    <div className="mt-3">
+                      {status === 'Pending' && (
+                        <button
+                          id={`btn-prep-${order.id}`}
+                          type="button"
+                          onClick={() =>
+                            handleUpdateStatus(
+                              order.id,
+                              'Preparing',
+                            )
+                          }
+                          disabled={isUpdating}
+                          className={`flex min-h-[46px] w-full items-center justify-center gap-2 rounded-xl text-xs font-black shadow-sm transition-all hover:shadow-md active:scale-[0.99] disabled:opacity-50 ${palette.action}`}
+                        >
+                          <Flame className="h-4 w-4" />
+                          Start Preparing
+                        </button>
+                      )}
 
-                    {status === 'Preparing' && (
-                      <button
-                        id={`btn-ready-${order.id}`}
-                        onClick={() => handleUpdateStatus(order.id, 'Ready')}
-                        disabled={isUpdating}
-                        className="w-full min-h-[48px] flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-600 text-stone-900 dark:text-white font-black text-sm hover:bg-emerald-500 active:scale-98 transition-all shadow-md hover:shadow-emerald-600/20 disabled:opacity-50"
-                      >
-                        <Bell className="h-4 w-4" />
-                        <span>Mark as Ready</span>
-                      </button>
-                    )}
+                      {status === 'Preparing' && (
+                        <button
+                          id={`btn-ready-${order.id}`}
+                          type="button"
+                          onClick={() =>
+                            handleUpdateStatus(order.id, 'Ready')
+                          }
+                          disabled={isUpdating}
+                          className={`flex min-h-[46px] w-full items-center justify-center gap-2 rounded-xl text-xs font-black shadow-sm transition-all hover:shadow-md active:scale-[0.99] disabled:opacity-50 ${palette.action}`}
+                        >
+                          <Bell className="h-4 w-4" />
+                          Mark as Ready
+                        </button>
+                      )}
 
-                    {status === 'Ready' && (
-                      <button
-                        id={`btn-served-${order.id}`}
-                        onClick={() => handleUpdateStatus(order.id, 'Served')}
-                        disabled={isUpdating}
-                        className="w-full min-h-[48px] flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-purple-600 text-stone-900 dark:text-white font-black text-sm hover:bg-purple-500 active:scale-98 transition-all shadow-md hover:shadow-purple-600/20 disabled:opacity-50"
-                      >
-                        <CheckCheck className="h-4 w-4" />
-                        <span>Mark as Served</span>
-                      </button>
-                    )}
+                      {status === 'Ready' && (
+                        <button
+                          id={`btn-served-${order.id}`}
+                          type="button"
+                          onClick={() =>
+                            handleUpdateStatus(
+                              order.id,
+                              'Served',
+                            )
+                          }
+                          disabled={isUpdating}
+                          className={`flex min-h-[46px] w-full items-center justify-center gap-2 rounded-xl text-xs font-black shadow-sm transition-all hover:shadow-md active:scale-[0.99] disabled:opacity-50 ${palette.action}`}
+                        >
+                          <CheckCheck className="h-4 w-4" />
+                          Mark as Served
+                        </button>
+                      )}
 
-                    {status === 'Served' && (
-                      <button
-                        id={`btn-dismiss-${order.id}`}
-                        onClick={() => handleDismissOrder(order.id)}
-                        disabled={isUpdating}
-                        className="w-full min-h-[48px] flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-stone-200 dark:bg-stone-700 text-stone-800 dark:text-stone-700 dark:text-stone-200 font-bold text-sm hover:bg-stone-300 dark:hover:bg-stone-600 active:scale-98 transition-all disabled:opacity-50"
-                      >
-                        <Trash2 className="h-4 w-4 text-stone-500 dark:text-stone-400" />
-                        <span>Archive / Dismiss</span>
-                      </button>
-                    )}
+                      {status === 'Served' && (
+                        <button
+                          id={`btn-dismiss-${order.id}`}
+                          type="button"
+                          onClick={() =>
+                            handleDismissOrder(order.id)
+                          }
+                          disabled={isUpdating}
+                          className="flex min-h-[46px] w-full items-center justify-center gap-2 rounded-xl bg-zinc-100 text-xs font-black text-zinc-700 transition-all hover:bg-zinc-200 disabled:opacity-50 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                        >
+                          <Trash2 className="h-4 w-4 text-zinc-400" />
+                          Archive / Dismiss
+                        </button>
+                      )}
+                    </div>
 
-                    {/* Segmented Stage Quick-Jump Bar for Mobile Fingers */}
-                    <div className="space-y-1 pt-1">
-                      <div className="flex items-center justify-between text-[10px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider px-0.5">
-                        <span>Direct Status Jump:</span>
-                        <span>{status}</span>
+                    {/* Quick status jump */}
+                    <div className="mt-4">
+                      <div className="mb-1.5 flex items-center justify-between px-0.5">
+                        <span className="text-[9px] font-black uppercase tracking-[0.14em] text-zinc-400">
+                          Status
+                        </span>
+                        <span className={`text-[9px] font-black uppercase tracking-wide ${palette.text}`}>
+                          {status}
+                        </span>
                       </div>
-                      <div className="grid grid-cols-4 gap-1 p-1 rounded-xl bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800">
-                        {(['Pending', 'Preparing', 'Ready', 'Served'] as OrderStatus[]).map((st) => {
-                          const isActive = status === st;
+
+                      <div className="grid grid-cols-4 gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-900">
+                        {(
+                          [
+                            'Pending',
+                            'Preparing',
+                            'Ready',
+                            'Served',
+                          ] as OrderStatus[]
+                        ).map((stage) => {
+                          const isActive = status === stage;
+
                           return (
                             <button
-                              key={st}
-                              id={`quick-jump-${order.id}-${st.toLowerCase()}`}
-                              onClick={() => handleUpdateStatus(order.id, st)}
+                              key={stage}
+                              id={`quick-jump-${order.id}-${stage.toLowerCase()}`}
+                              type="button"
+                              onClick={() =>
+                                handleUpdateStatus(
+                                  order.id,
+                                  stage,
+                                )
+                              }
                               disabled={isUpdating || isActive}
-                              className={`min-h-[38px] py-1 px-1 rounded-lg text-[11px] font-bold transition-all flex flex-col items-center justify-center ${isActive
-                                ? 'bg-stone-900 dark:bg-stone-200 text-stone-900 text-white dark:text-black font-black shadow-xs cursor-default'
-                                : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200 dark:hover:bg-stone-800'
+                              className={`min-h-[34px] rounded-lg px-1 text-[9px] font-black transition-all ${isActive
+                                  ? 'bg-white text-zinc-950 shadow-sm dark:bg-zinc-800 dark:text-white'
+                                  : 'text-zinc-400 hover:bg-white hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200'
                                 }`}
                             >
-                              <span>{st}</span>
+                              {stage}
                             </button>
                           );
                         })}
                       </div>
                     </div>
-
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>

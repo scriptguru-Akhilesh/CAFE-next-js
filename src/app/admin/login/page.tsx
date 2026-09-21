@@ -61,8 +61,12 @@ function AdminLoginContent() {
     setIsSubmitting(false);
 
     if (result.success) {
-      const redirect = searchParams.get('redirect') || '/admin';
-      router.replace(redirect);
+      if (result.user?.role === 'platform') {
+        router.replace('/platform/dashboard');
+      } else {
+        const redirect = searchParams.get('redirect') || '/admin';
+        router.replace(redirect);
+      }
     } else {
       setErrorMsg(
         result.error || 'Invalid credentials. Please try again.'
@@ -112,11 +116,11 @@ function AdminLoginContent() {
             </div>
 
             <h1 className="text-xl sm:text-2xl font-extrabold text-stone-900 dark:text-white tracking-tight">
-              Admin Login
+              Portal Login
             </h1>
 
             <p className="text-xs leading-relaxed text-stone-500 dark:text-stone-400">
-              Sign in to manage cafe dishes, tables, and the kitchen display system.
+              Sign in as a Cafe Owner or Super Admin to manage your portal.
             </p>
           </div>
 
@@ -207,23 +211,18 @@ function AdminLoginContent() {
                 </span>
               </div>
 
-              <div className="font-mono text-[10px] text-stone-500 dark:text-stone-400">
-                User:{' '}
-                <span className="text-amber-600 dark:text-amber-400 font-bold">
-                  admin@cornerroastery.com
-                </span>{' '}
-                (or{' '}
-                <span className="text-amber-600 dark:text-amber-400 font-bold">
-                  admin
-                </span>
-                )
-              </div>
+              <div className="flex gap-4">
+                <div className="font-mono text-[10px] text-stone-500 dark:text-stone-400">
+                  <div className="font-bold text-stone-800 dark:text-stone-200 mb-1">Super Admin:</div>
+                  <div>User: <span className="text-amber-600 dark:text-amber-400 font-bold">platform</span></div>
+                  <div>Pass: <span className="text-amber-600 dark:text-amber-400 font-bold">platform123</span></div>
+                </div>
 
-              <div className="font-mono text-[10px] text-stone-500 dark:text-stone-400">
-                Pass:{' '}
-                <span className="text-amber-600 dark:text-amber-400 font-bold">
-                  admin123
-                </span>
+                <div className="font-mono text-[10px] text-stone-500 dark:text-stone-400 border-l pl-4 border-stone-200 dark:border-stone-800">
+                  <div className="font-bold text-stone-800 dark:text-stone-200 mb-1">Cafe Owner:</div>
+                  <div>User: <span className="text-amber-600 dark:text-amber-400 font-bold">admin</span></div>
+                  <div>Pass: <span className="text-amber-600 dark:text-amber-400 font-bold">admin123</span></div>
+                </div>
               </div>
             </div>
 

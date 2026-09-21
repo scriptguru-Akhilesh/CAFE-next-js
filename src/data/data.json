@@ -163,14 +163,54 @@
     }
   ],
   "tables": [
-    { "id": "tbl-1", "name": "Table 1", "number": "1", "createdAt": 1710000001000 },
-    { "id": "tbl-2", "name": "Table 2", "number": "2", "createdAt": 1710000002000 },
-    { "id": "tbl-3", "name": "Table 3", "number": "3", "createdAt": 1710000003000 },
-    { "id": "tbl-4", "name": "Table 4", "number": "4", "createdAt": 1710000004000 },
-    { "id": "tbl-5", "name": "Table 5", "number": "5", "createdAt": 1710000005000 },
-    { "id": "tbl-6", "name": "Table 6", "number": "6", "createdAt": 1710000006000 },
-    { "id": "tbl-7", "name": "Table 7", "number": "7", "createdAt": 1710000007000 },
-    { "id": "tbl-8", "name": "Table 8", "number": "8", "createdAt": 1710000008000 }
+    {
+      "id": "tbl-1",
+      "name": "Table 1",
+      "number": "1",
+      "createdAt": 1710000001000
+    },
+    {
+      "id": "tbl-2",
+      "name": "Table 2",
+      "number": "2",
+      "createdAt": 1710000002000
+    },
+    {
+      "id": "tbl-3",
+      "name": "Table 3",
+      "number": "3",
+      "createdAt": 1710000003000
+    },
+    {
+      "id": "tbl-4",
+      "name": "Table 4",
+      "number": "4",
+      "createdAt": 1710000004000
+    },
+    {
+      "id": "tbl-5",
+      "name": "Table 5",
+      "number": "5",
+      "createdAt": 1710000005000
+    },
+    {
+      "id": "tbl-6",
+      "name": "Table 6",
+      "number": "6",
+      "createdAt": 1710000006000
+    },
+    {
+      "id": "tbl-7",
+      "name": "Table 7",
+      "number": "7",
+      "createdAt": 1710000007000
+    },
+    {
+      "id": "tbl-8",
+      "name": "Table 8",
+      "number": "8",
+      "createdAt": 1710000008000
+    }
   ],
   "orders": [
     {
@@ -222,6 +262,26 @@
       "createdAt": 1710000010000,
       "status": "Pending",
       "notes": "Less caramel, oat milk if possible"
+    }
+  ],
+  "cafes": [
+    {
+      "id": "cafe-690702",
+      "createdAt": 1789975690702,
+      "name": "dhananjay rathore",
+      "location": "Dehradun Uttarakhand",
+      "ownerName": "dhananjay rathore",
+      "username": "akhilesh@scriptgurudigitalsolution.com",
+      "password": "123456"
+    },
+    {
+      "id": "cafe-413045",
+      "createdAt": 1789985413045,
+      "name": "Akhilesh Bisht",
+      "location": "Dehradun Uttarakhand",
+      "ownerName": "akhileshj",
+      "username": "akhilesh@scriptgurudigitalsolution.com",
+      "password": "qcxivcbw"
     }
   ]
 }

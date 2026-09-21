@@ -22,10 +22,14 @@ export default function AdminLayout({
   const isLoginPage = pathname === '/admin/login';
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated && !isLoginPage) {
-      router.replace(`/admin/login?redirect=${encodeURIComponent(pathname)}`);
+    if (!isLoading) {
+      if (!isAuthenticated && !isLoginPage) {
+        router.replace(`/admin/login?redirect=${encodeURIComponent(pathname)}`);
+      } else if (isAuthenticated && user?.role === 'platform' && !isLoginPage) {
+        router.replace('/platform/dashboard');
+      }
     }
-  }, [isLoading, isAuthenticated, isLoginPage, pathname, router]);
+  }, [isLoading, isAuthenticated, isLoginPage, pathname, router, user]);
 
   if (isLoginPage) {
     return <>{children}</>;
@@ -94,11 +98,10 @@ export default function AdminLayout({
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-                      link.isActive
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${link.isActive
                         ? 'bg-white dark:bg-stone-800 text-stone-900 dark:text-amber-400 shadow-sm'
                         : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-stone-900'
-                    }`}
+                      }`}
                   >
                     <Icon className="h-3.5 w-3.5 shrink-0" />
                     <span>{link.label}</span>
@@ -151,11 +154,10 @@ export default function AdminLayout({
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`flex flex-1 items-center justify-center gap-1.5 px-2 py-2 rounded-xl text-[11px] font-bold transition-all min-w-0 ${
-                    link.isActive
+                  className={`flex flex-1 items-center justify-center gap-1.5 px-2 py-2 rounded-xl text-[11px] font-bold transition-all min-w-0 ${link.isActive
                       ? 'bg-stone-900 dark:bg-amber-500 text-white dark:text-stone-950'
                       : 'text-stone-600 dark:text-stone-400'
-                  }`}
+                    }`}
                 >
                   <Icon className="h-3.5 w-3.5 shrink-0" />
                   <span className="truncate">{link.label.split(' ')[0]}</span>

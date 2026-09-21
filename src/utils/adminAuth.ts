@@ -2,49 +2,47 @@ export interface AdminUser {
   id: string;
   name: string;
   email: string;
-  role: 'admin';
+  role: 'admin' | 'platform' | 'owner'; // 'admin' is for backward compatibility
+  cafeId?: string;
 }
 
 const STORAGE_KEY = 'corner_roastery_admin_session';
 
-export const ADMIN_CREDENTIALS = {
-  // Can be configured via process.env or defaults
-  email: process.env.NEXT_PUBLIC_ADMIN_EMAIL || process.env.ADMIN_EMAIL || 'admin@cornerroastery.com',
-  username: 'admin',
-  password: process.env.NEXT_PUBLIC_ADMIN_PASSWORD || process.env.ADMIN_PASSWORD || 'admin123',
-};
-
 export const adminAuth = {
   login: async (identifier: string, passwordAttempt: string): Promise<{ success: boolean; error?: string; user?: AdminUser }> => {
-    const trimmedId = identifier.trim().toLowerCase();
-    const isValidId = trimmedId === ADMIN_CREDENTIALS.email.toLowerCase() || trimmedId === ADMIN_CREDENTIALS.username.toLowerCase();
-    const isValidPass = passwordAttempt === ADMIN_CREDENTIALS.password;
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: identifier, password: passwordAttempt })
+      });
 
-    if (!isValidId || !isValidPass) {
-      return {
-        success: false,
-        error: 'Invalid email/username or password. (Default: admin@cornerroastery.com / admin123)',
-      };
-    }
+      const data = await response.json();
 
-    const user: AdminUser = {
-      id: 'admin-1',
-      name: 'Cafe Owner / Administrator',
-      email: ADMIN_CREDENTIALS.email,
-      role: 'admin',
-    };
-
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ user, token: 'session_' + Date.now() }));
-        // Keep a cookie for reload/session continuity.
-        document.cookie = `admin_auth_token=valid; path=/; max-age=86400; SameSite=Lax`;
-      } catch (e) {
-        console.error('Failed to save admin session', e);
+      if (!response.ok || !data.success) {
+        return {
+          success: false,
+          error: data.error || 'Invalid username or password',
+        };
       }
-    }
 
-    return { success: true, user };
+      const user: AdminUser = data.user;
+
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({ user, token: 'session_' + Date.now() }));
+          // Keep a cookie for reload/session continuity.
+          document.cookie = `admin_auth_token=valid; path=/; max-age=86400; SameSite=Lax`;
+        } catch (e) {
+          console.error('Failed to save admin session', e);
+        }
+      }
+
+      return { success: true, user };
+    } catch (err) {
+      console.error('Login error:', err);
+      return { success: false, error: 'Network error during login' };
+    }
   },
 
   logout: () => {
