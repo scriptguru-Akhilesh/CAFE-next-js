@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  Plus, Edit2, Trash2, Search, CheckCircle2, 
+import {
+  Plus, Edit2, Trash2, Search, CheckCircle2,
   X, Coffee, Sparkles, AlertCircle, ArrowLeft,
   UtensilsCrossed, ShoppingBag, Eye, RefreshCw, Layers,
   QrCode, Users, MapPin
@@ -54,7 +54,7 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({
 
     const saved = typeof window !== 'undefined' ? localStorage.getItem('corner_roastery_menu') : null;
     if (saved) {
-      try { return JSON.parse(saved); } catch {}
+      try { return JSON.parse(saved); } catch { }
     }
     return STATIC_MENU;
   });
@@ -219,7 +219,7 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({
   // Toggle in-stock / out-of-stock
   const handleToggleStock = async (itemId: string, currentAvailable?: boolean) => {
     const newStatus = currentAvailable === false ? true : false;
-    
+
     const updated = menu.map((m) => m.id === itemId ? { ...m, available: newStatus } : m);
     menuStorage.setMenu(updated);
     setMenu(updated);
@@ -248,7 +248,7 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({
       const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (item.category && item.category.toLowerCase().includes(searchQuery.toLowerCase()));
-      
+
       const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
 
       const matchesStock = stockFilter === 'all' ||
@@ -344,11 +344,10 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({
           <button
             id="owner-tab-menu-items"
             onClick={() => setActiveTab('menu')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all min-h-[40px] whitespace-nowrap ${
-              activeTab === 'menu'
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all min-h-[40px] whitespace-nowrap ${activeTab === 'menu'
                 ? 'bg-stone-900 dark:bg-amber-500 text-white dark:text-stone-950 shadow-sm'
                 : 'text-stone-600 dark:text-stone-400 hover:bg-stone-200/60 dark:hover:bg-stone-800'
-            }`}
+              }`}
           >
             <Layers className="h-4 w-4" />
             <span>Dish Catalog ({menu.length})</span>
@@ -357,11 +356,10 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({
           <button
             id="owner-tab-tables-qr"
             onClick={() => setActiveTab('tables')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all min-h-[40px] whitespace-nowrap ${
-              activeTab === 'tables'
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all min-h-[40px] whitespace-nowrap ${activeTab === 'tables'
                 ? 'bg-stone-900 dark:bg-amber-500 text-white dark:text-stone-950 shadow-sm'
                 : 'text-stone-600 dark:text-stone-400 hover:bg-stone-200/60 dark:hover:bg-stone-800'
-            }`}
+              }`}
           >
             <QrCode className="h-4 w-4" />
             <span>Tables & QR Stands ({tables.length})</span>
@@ -395,237 +393,228 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({
               </div>
             </div>
 
-        {/* Filters & Search */}
-        <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-3 sm:p-4 space-y-3 shadow-2xs">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-            {/* Search */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 dark:text-stone-500" />
-              <input
-                id="owner-search-input"
-                type="text"
-                placeholder="Search dish name, category, or description..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50/60 dark:bg-stone-950/60 text-xs sm:text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-hidden focus:border-stone-400 dark:focus:border-stone-600 focus:bg-white dark:focus:bg-stone-900 transition-colors"
-              />
-            </div>
+            {/* Filters & Search */}
+            <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-3 sm:p-4 space-y-3 shadow-2xs">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                {/* Search */}
+                <div className="relative flex-1">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 dark:text-stone-500" />
+                  <input
+                    id="owner-search-input"
+                    type="text"
+                    placeholder="Search dish name, category, or description..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50/60 dark:bg-stone-950/60 text-xs sm:text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-hidden focus:border-stone-400 dark:focus:border-stone-600 focus:bg-white dark:focus:bg-stone-900 transition-colors"
+                  />
+                </div>
 
-            {/* Stock Filter */}
-            <div className="flex items-center gap-1 bg-stone-100 dark:bg-stone-800 p-1 rounded-xl shrink-0">
-              <button
-                onClick={() => setStockFilter('all')}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                  stockFilter === 'all' ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-white shadow-2xs' : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white'
-                }`}
-              >
-                All ({menu.length})
-              </button>
-              <button
-                onClick={() => setStockFilter('in_stock')}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                  stockFilter === 'in_stock' ? 'bg-white dark:bg-stone-900 text-emerald-800 dark:text-emerald-300 shadow-2xs font-bold' : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white'
-                }`}
-              >
-                In Stock ({inStockCount})
-              </button>
-              <button
-                onClick={() => setStockFilter('out_of_stock')}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                  stockFilter === 'out_of_stock' ? 'bg-white dark:bg-stone-900 text-amber-800 dark:text-amber-300 shadow-2xs font-bold' : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white'
-                }`}
-              >
-                Sold Out ({outOfStockCount})
-              </button>
-            </div>
-          </div>
-
-          {/* Category Pills */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pt-1 pb-0.5 no-scrollbar">
-            <button
-              onClick={() => setSelectedCategory('All')}
-              className={`px-3 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
-                selectedCategory === 'All'
-                  ? 'bg-stone-900 dark:bg-amber-500 text-white dark:text-stone-950'
-                  : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200/70 dark:hover:bg-stone-700'
-              }`}
-            >
-              All Categories
-            </button>
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
-                  selectedCategory === cat
-                    ? 'bg-stone-900 dark:bg-amber-500 text-white dark:text-stone-950'
-                    : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200/70 dark:hover:bg-stone-700'
-                }`}
-              >
-                {cat} ({menu.filter((m) => m.category === cat).length})
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Menu Items Grid */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-xs font-semibold text-stone-500 dark:text-stone-400 px-1">
-            <span>Showing {filteredList.length} menu items</span>
-            <span>Tap "In Stock" to toggle sold-out status</span>
-          </div>
-
-          {filteredList.length === 0 ? (
-            <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-12 text-center space-y-3">
-              <Coffee className="h-10 w-10 text-stone-300 dark:text-stone-600 mx-auto" />
-              <h3 className="text-base font-bold text-stone-800 dark:text-stone-200">No menu items found</h3>
-              <p className="text-xs text-stone-500 dark:text-stone-400 max-w-sm mx-auto">
-                No items match your filter criteria. Try clearing the search or adding a new menu item.
-              </p>
-              <button
-                onClick={handleOpenAddModal}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-stone-900 dark:bg-amber-500 px-4 py-2 text-xs font-bold text-white dark:text-stone-950 shadow-sm hover:bg-stone-800 dark:hover:bg-amber-400"
-              >
-                <Plus className="h-4 w-4" />
-                <span>Add Item Now</span>
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {filteredList.map((item) => {
-                const isAvailable = item.available !== false;
-                return (
-                  <div
-                    key={item.id}
-                    id={`owner-item-${item.id}`}
-                    className={`rounded-2xl border bg-white dark:bg-stone-900 p-3.5 flex flex-col justify-between transition-all shadow-2xs ${
-                      !isAvailable 
-                        ? 'border-stone-200/70 dark:border-stone-800/70 bg-stone-50/70 dark:bg-stone-950/70 opacity-80' 
-                        : 'border-stone-200/90 dark:border-stone-800 hover:border-stone-300 dark:hover:border-stone-700'
-                    }`}
+                {/* Stock Filter */}
+                <div className="flex items-center gap-1 bg-stone-100 dark:bg-stone-800 p-1 rounded-xl shrink-0">
+                  <button
+                    onClick={() => setStockFilter('all')}
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${stockFilter === 'all' ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-white shadow-2xs' : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white'
+                      }`}
                   >
-                    <div className="flex gap-3">
-                      {/* Image Thumbnail */}
-                      <div className="relative h-22 w-22 sm:h-24 sm:w-24 rounded-xl overflow-hidden bg-stone-100 dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700/80 shrink-0">
-                        {item.image ? (
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className={`h-full w-full object-cover ${!isAvailable ? 'grayscale-[60%]' : ''}`}
-                            loading="lazy"
-                            referrerPolicy="no-referrer"
-                          />
-                        ) : (
-                          <div className="h-full w-full flex items-center justify-center text-stone-400 dark:text-stone-500">
-                            <Coffee className="h-6 w-6" />
-                          </div>
-                        )}
+                    All ({menu.length})
+                  </button>
+                  <button
+                    onClick={() => setStockFilter('in_stock')}
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${stockFilter === 'in_stock' ? 'bg-white dark:bg-stone-900 text-emerald-800 dark:text-emerald-300 shadow-2xs font-bold' : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white'
+                      }`}
+                  >
+                    In Stock ({inStockCount})
+                  </button>
+                  <button
+                    onClick={() => setStockFilter('out_of_stock')}
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${stockFilter === 'out_of_stock' ? 'bg-white dark:bg-stone-900 text-amber-800 dark:text-amber-300 shadow-2xs font-bold' : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white'
+                      }`}
+                  >
+                    Sold Out ({outOfStockCount})
+                  </button>
+                </div>
+              </div>
 
-                        {/* Veg / Non-veg indicator dot */}
-                        <div 
-                          title={item.isVeg !== false ? 'Vegetarian' : 'Non-Vegetarian'}
-                          className={`absolute bottom-1.5 left-1.5 flex h-4 w-4 items-center justify-center rounded bg-white/95 dark:bg-stone-950/95 p-0.5 shadow-2xs border ${
-                            item.isVeg !== false ? 'border-emerald-600' : 'border-rose-600'
+              {/* Category Pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pt-1 pb-0.5 no-scrollbar">
+                <button
+                  onClick={() => setSelectedCategory('All')}
+                  className={`px-3 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${selectedCategory === 'All'
+                      ? 'bg-stone-900 dark:bg-amber-500 text-white dark:text-stone-950'
+                      : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200/70 dark:hover:bg-stone-700'
+                    }`}
+                >
+                  All Categories
+                </button>
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-3 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${selectedCategory === cat
+                        ? 'bg-stone-900 dark:bg-amber-500 text-white dark:text-stone-950'
+                        : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200/70 dark:hover:bg-stone-700'
+                      }`}
+                  >
+                    {cat} ({menu.filter((m) => m.category === cat).length})
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Menu Items Grid */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-xs font-semibold text-stone-500 dark:text-stone-400 px-1">
+                <span>Showing {filteredList.length} menu items</span>
+                <span>Tap "In Stock" to toggle sold-out status</span>
+              </div>
+
+              {filteredList.length === 0 ? (
+                <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-12 text-center space-y-3">
+                  <Coffee className="h-10 w-10 text-stone-300 dark:text-stone-600 mx-auto" />
+                  <h3 className="text-base font-bold text-stone-800 dark:text-stone-200">No menu items found</h3>
+                  <p className="text-xs text-stone-500 dark:text-stone-400 max-w-sm mx-auto">
+                    No items match your filter criteria. Try clearing the search or adding a new menu item.
+                  </p>
+                  <button
+                    onClick={handleOpenAddModal}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-stone-900 dark:bg-amber-500 px-4 py-2 text-xs font-bold text-white dark:text-stone-950 shadow-sm hover:bg-stone-800 dark:hover:bg-amber-400"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Add Item Now</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {filteredList.map((item) => {
+                    const isAvailable = item.available !== false;
+                    return (
+                      <div
+                        key={item.id}
+                        id={`owner-item-${item.id}`}
+                        className={`rounded-2xl border bg-white dark:bg-stone-900 p-3.5 flex flex-col justify-between transition-all shadow-2xs ${!isAvailable
+                            ? 'border-stone-200/70 dark:border-stone-800/70 bg-stone-50/70 dark:bg-stone-950/70 opacity-80'
+                            : 'border-stone-200/90 dark:border-stone-800 hover:border-stone-300 dark:hover:border-stone-700'
                           }`}
-                        >
-                          <div className={`h-1.5 w-1.5 rounded-full ${
-                            item.isVeg !== false ? 'bg-emerald-600' : 'bg-rose-600'
-                          }`} />
-                        </div>
+                      >
+                        <div className="flex gap-3">
+                          {/* Image Thumbnail */}
+                          <div className="relative h-22 w-22 sm:h-24 sm:w-24 rounded-xl overflow-hidden bg-stone-100 dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700/80 shrink-0">
+                            {item.image ? (
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className={`h-full w-full object-cover ${!isAvailable ? 'grayscale-[60%]' : ''}`}
+                                loading="lazy"
+                                referrerPolicy="no-referrer"
+                              />
+                            ) : (
+                              <div className="h-full w-full flex items-center justify-center text-stone-400 dark:text-stone-500">
+                                <Coffee className="h-6 w-6" />
+                              </div>
+                            )}
 
-                        {item.badge && (
-                          <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-stone-900/90 dark:bg-amber-500 dark:text-stone-950 text-white font-bold text-[8px] uppercase tracking-wider backdrop-blur-xs">
-                            {item.badge}
-                          </span>
-                        )}
-                      </div>
+                            {/* Veg / Non-veg indicator dot */}
+                            <div
+                              title={item.isVeg !== false ? 'Vegetarian' : 'Non-Vegetarian'}
+                              className={`absolute bottom-1.5 left-1.5 flex h-4 w-4 items-center justify-center rounded bg-white/95 dark:bg-stone-950/95 p-0.5 shadow-2xs border ${item.isVeg !== false ? 'border-emerald-600' : 'border-rose-600'
+                                }`}
+                            >
+                              <div className={`h-1.5 w-1.5 rounded-full ${item.isVeg !== false ? 'bg-emerald-600' : 'bg-rose-600'
+                                }`} />
+                            </div>
 
-                      {/* Content Details */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <h3 className="font-bold text-sm text-stone-900 dark:text-white leading-snug truncate">
-                              {item.name}
-                            </h3>
-                            <span className="text-[11px] font-semibold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 px-1.5 py-0.5 rounded border border-amber-200/60 dark:border-amber-500/30 inline-block mt-0.5">
-                              {item.category || 'General'}
-                            </span>
+                            {item.badge && (
+                              <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-stone-900/90 dark:bg-amber-500 dark:text-stone-950 text-white font-bold text-[8px] uppercase tracking-wider backdrop-blur-xs">
+                                {item.badge}
+                              </span>
+                            )}
                           </div>
 
-                          {/* Price in INR */}
-                          <div className="text-right shrink-0">
-                            <span className="font-mono text-base font-extrabold text-stone-900 dark:text-amber-400 block">
-                              ₹{item.price}
-                            </span>
-                            {item.prepTime && (
-                              <span className="text-[10px] text-stone-400 dark:text-stone-500 block font-medium">
-                                {item.prepTime}
-                              </span>
+                          {/* Content Details */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <h3 className="font-bold text-sm text-stone-900 dark:text-white leading-snug truncate">
+                                  {item.name}
+                                </h3>
+                                <span className="text-[11px] font-semibold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 px-1.5 py-0.5 rounded border border-amber-200/60 dark:border-amber-500/30 inline-block mt-0.5">
+                                  {item.category || 'General'}
+                                </span>
+                              </div>
+
+                              {/* Price in INR */}
+                              <div className="text-right shrink-0">
+                                <span className="font-mono text-base font-extrabold text-stone-900 dark:text-amber-400 block">
+                                  ₹{item.price}
+                                </span>
+                                {item.prepTime && (
+                                  <span className="text-[10px] text-stone-400 dark:text-stone-500 block font-medium">
+                                    {item.prepTime}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {item.description && (
+                              <p className="text-xs text-stone-500 dark:text-stone-400 line-clamp-2 mt-1.5 leading-relaxed">
+                                {item.description}
+                              </p>
                             )}
                           </div>
                         </div>
 
-                        {item.description && (
-                          <p className="text-xs text-stone-500 dark:text-stone-400 line-clamp-2 mt-1.5 leading-relaxed">
-                            {item.description}
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                        {/* Bottom Action Strip */}
+                        <div className="mt-3 pt-2.5 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between gap-2">
+                          {/* Availability Toggle Switch */}
+                          <button
+                            id={`toggle-stock-${item.id}`}
+                            onClick={() => handleToggleStock(item.id, item.available)}
+                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${isAvailable
+                                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 hover:bg-emerald-100 dark:hover:bg-emerald-950/60'
+                                : 'bg-stone-200 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border border-stone-300 dark:border-stone-700 hover:bg-stone-300/80'
+                              }`}
+                          >
+                            <span className={`h-2 w-2 rounded-full ${isAvailable ? 'bg-emerald-500' : 'bg-stone-400'}`} />
+                            <span>{isAvailable ? 'In Stock' : 'Sold Out'}</span>
+                          </button>
 
-                    {/* Bottom Action Strip */}
-                    <div className="mt-3 pt-2.5 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between gap-2">
-                      {/* Availability Toggle Switch */}
-                      <button
-                        id={`toggle-stock-${item.id}`}
-                        onClick={() => handleToggleStock(item.id, item.available)}
-                        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
-                          isAvailable
-                            ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 hover:bg-emerald-100 dark:hover:bg-emerald-950/60'
-                            : 'bg-stone-200 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border border-stone-300 dark:border-stone-700 hover:bg-stone-300/80'
-                        }`}
-                      >
-                        <span className={`h-2 w-2 rounded-full ${isAvailable ? 'bg-emerald-500' : 'bg-stone-400'}`} />
-                        <span>{isAvailable ? 'In Stock' : 'Sold Out'}</span>
-                      </button>
-
-                      {/* Edit and Delete Buttons */}
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          id={`edit-item-${item.id}`}
-                          onClick={() => handleOpenEditModal(item)}
-                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-stone-700 text-xs font-semibold shadow-2xs transition-colors"
-                        >
-                          <Edit2 className="h-3 w-3 text-stone-500 dark:text-stone-400" />
-                          <span>Edit</span>
-                        </button>
-                        <button
-                          id={`delete-item-${item.id}`}
-                          onClick={() => handleDeleteItem(item)}
-                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-800 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 text-xs font-semibold shadow-2xs transition-colors"
-                          title="Remove item"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                          <span>Delete</span>
-                        </button>
+                          {/* Edit and Delete Buttons */}
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              id={`edit-item-${item.id}`}
+                              onClick={() => handleOpenEditModal(item)}
+                              className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-stone-700 text-xs font-semibold shadow-2xs transition-colors"
+                            >
+                              <Edit2 className="h-3 w-3 text-stone-500 dark:text-stone-400" />
+                              <span>Edit</span>
+                            </button>
+                            <button
+                              id={`delete-item-${item.id}`}
+                              onClick={() => handleDeleteItem(item)}
+                              className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-800 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 text-xs font-semibold shadow-2xs transition-colors"
+                              title="Remove item"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              <span>Delete</span>
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-        </>
-      )}
+          </>
+        )}
       </main>
 
       {/* ========================================================= */}
       {/* ADD / EDIT ITEM MODAL */}
       {/* ========================================================= */}
       {isModalOpen && (
-        <div 
-          id="menu-item-modal-overlay" 
+        <div
+          id="menu-item-modal-overlay"
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs overflow-y-auto"
         >
           <div className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-stone-900 p-6 shadow-2xl border border-stone-200 dark:border-stone-800 my-8 max-h-[90vh] overflow-y-auto">
@@ -789,11 +778,10 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, isVeg: true })}
-                      className={`flex-1 py-1.5 rounded-lg text-xs font-bold border flex items-center justify-center gap-1 transition-all ${
-                        formData.isVeg
+                      className={`flex-1 py-1.5 rounded-lg text-xs font-bold border flex items-center justify-center gap-1 transition-all ${formData.isVeg
                           ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300'
                           : 'border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-stone-500 dark:text-stone-400'
-                      }`}
+                        }`}
                     >
                       <span className="h-2 w-2 rounded-full bg-emerald-600" />
                       <span>Veg</span>
@@ -801,11 +789,10 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, isVeg: false })}
-                      className={`flex-1 py-1.5 rounded-lg text-xs font-bold border flex items-center justify-center gap-1 transition-all ${
-                        !formData.isVeg
+                      className={`flex-1 py-1.5 rounded-lg text-xs font-bold border flex items-center justify-center gap-1 transition-all ${!formData.isVeg
                           ? 'border-rose-600 bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300'
                           : 'border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-stone-500 dark:text-stone-400'
-                      }`}
+                        }`}
                     >
                       <span className="h-2 w-2 rounded-full bg-rose-600" />
                       <span>Non-Veg</span>
@@ -839,11 +826,10 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({
                         key={idx}
                         type="button"
                         onClick={() => setFormData({ ...formData, image: preset.url })}
-                        className={`relative rounded-lg overflow-hidden border transition-all ${
-                          formData.image === preset.url
+                        className={`relative rounded-lg overflow-hidden border transition-all ${formData.image === preset.url
                             ? 'border-amber-500 ring-2 ring-amber-500 scale-95'
                             : 'border-stone-200 dark:border-stone-700 hover:border-stone-400 dark:hover:border-stone-500'
-                        }`}
+                          }`}
                         title={preset.name}
                       >
                         <img

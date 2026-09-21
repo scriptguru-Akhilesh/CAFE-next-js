@@ -14,7 +14,7 @@ export const QRWelcomeScreen: React.FC<QRWelcomeScreenProps> = ({
   tableNumber = CAFE_INFO.tableNumber,
 }) => {
   return (
-    <div 
+    <div
       id="qr-welcome-screen"
       className="relative min-h-[calc(100vh-60px)] w-full flex flex-col justify-between items-center bg-stone-50 text-stone-900 px-3 sm:px-6 py-6 sm:py-10 space-y-6"
     >
@@ -37,7 +37,7 @@ export const QRWelcomeScreen: React.FC<QRWelcomeScreenProps> = ({
 
       {/* Main QR Card */}
       <main className="mx-auto my-auto w-full max-w-sm">
-        <div 
+        <div
           id="qr-card"
           className="rounded-3xl border border-stone-200/80 bg-white p-5 sm:p-7 text-center shadow-xs"
         >
@@ -50,7 +50,7 @@ export const QRWelcomeScreen: React.FC<QRWelcomeScreenProps> = ({
 
           {/* Center QR Code Display */}
           <div className="my-5 flex justify-center">
-            <div 
+            <div
               id="qr-code-box"
               className="rounded-2xl border border-stone-200 bg-white p-3 shadow-xs"
             >
@@ -61,7 +61,7 @@ export const QRWelcomeScreen: React.FC<QRWelcomeScreenProps> = ({
                   shapeRendering="crispEdges"
                 >
                   <rect width="100" height="100" fill="#ffffff" />
-                  
+
                   {/* Finders */}
                   <rect x="6" y="6" width="24" height="24" fill="#1c1917" />
                   <rect x="9" y="9" width="18" height="18" fill="#ffffff" />
@@ -105,7 +105,7 @@ export const QRWelcomeScreen: React.FC<QRWelcomeScreenProps> = ({
                     <rect x="79" y="45" width="5" height="4" />
                     <rect x="68" y="55" width="5" height="5" />
                     <rect x="77" y="53" width="4" height="6" />
-                    
+
                     <rect x="69" y="68" width="5" height="5" />
                     <rect x="78" y="67" width="5" height="6" />
                     <rect x="86" y="69" width="6" height="5" />

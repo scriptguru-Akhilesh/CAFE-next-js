@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { 
-  X, Plus, Minus, Trash2, ShoppingBag, 
-  StickyNote, ChevronRight, ShieldCheck, UtensilsCrossed 
+import {
+  X, Plus, Minus, Trash2, ShoppingBag,
+  StickyNote, ChevronRight, ShieldCheck, UtensilsCrossed
 } from 'lucide-react';
 import { SimpleOrderItem } from '../types';
 

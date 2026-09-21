@@ -67,7 +67,7 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
 
   return (
     <div id="qr-scanner-overlay" className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-      <div 
+      <div
         id="qr-scanner-container"
         className="relative w-full max-w-sm rounded-3xl bg-stone-900 text-white p-6 shadow-2xl border border-stone-800 text-center"
       >
@@ -89,8 +89,8 @@ export const QRScannerModal: React.FC<QRScannerModalProps> = ({
             {scanStep === 'detected' ? `Table ${tableNumber} QR Detected!` : 'Scanning Table QR Code...'}
           </h3>
           <p className="text-xs text-stone-400 mt-1">
-            {scanStep === 'detected' 
-              ? 'Opening your digital menu automatically...' 
+            {scanStep === 'detected'
+              ? 'Opening your digital menu automatically...'
               : 'Hold steady over the table stand QR code'}
           </p>
         </div>

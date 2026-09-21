@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { 
-  ArrowLeft, Wifi, Copy, Check, Phone, MessageSquare, 
+import {
+  ArrowLeft, Wifi, Copy, Check, Phone, MessageSquare,
   Clock, Coffee, Bell, Sparkles
 } from 'lucide-react';
 import { CAFE_INFO, TABLE_SERVICES, CAFE_FACILITIES } from '../data/cafeData';
@@ -24,8 +24,8 @@ export const HotelServices: React.FC<CafeServicesProps> = ({
   };
 
   const handleRequestService = (serviceId: string) => {
-    setServiceRequests(prev => 
-      prev.map(item => 
+    setServiceRequests(prev =>
+      prev.map(item =>
         item.id === serviceId ? { ...item, status: 'confirmed' } : item
       )
     );
@@ -130,11 +130,10 @@ export const HotelServices: React.FC<CafeServicesProps> = ({
                   <button
                     onClick={() => handleRequestService(srv.id)}
                     disabled={srv.status === 'confirmed'}
-                    className={`rounded-xl px-3 py-2 text-xs font-semibold transition-all active:scale-95 ${
-                      srv.status === 'confirmed'
+                    className={`rounded-xl px-3 py-2 text-xs font-semibold transition-all active:scale-95 ${srv.status === 'confirmed'
                         ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                         : 'bg-stone-900 text-white hover:bg-stone-800'
-                    }`}
+                      }`}
                   >
                     {srv.status === 'confirmed' ? 'Attending to Table ✓' : 'Call to Table'}
                   </button>

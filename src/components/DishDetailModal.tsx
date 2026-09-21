@@ -6,11 +6,11 @@ interface DishDetailModalProps {
   item: MenuItem | null;
   onClose: () => void;
   onAddToCart: (
-    item: MenuItem, 
-    quantity: number, 
-    notes?: string, 
-    milk?: string, 
-    temp?: string, 
+    item: MenuItem,
+    quantity: number,
+    notes?: string,
+    milk?: string,
+    temp?: string,
     sugar?: string
   ) => void;
   currentCartQty?: number;
@@ -80,7 +80,7 @@ export const DishDetailModal: React.FC<DishDetailModalProps> = ({
 
   return (
     <div id="dish-detail-backdrop" className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4 backdrop-blur-xs">
-      <div 
+      <div
         id="dish-detail-card"
         className="relative max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-3xl sm:rounded-2xl border border-stone-200 bg-white text-stone-900 shadow-2xl pb-safe"
       >
@@ -101,10 +101,9 @@ export const DishDetailModal: React.FC<DishDetailModalProps> = ({
             className="h-full w-full object-cover"
             referrerPolicy="no-referrer"
           />
-          <div 
-            className={`absolute top-3.5 left-3.5 flex h-5 w-5 items-center justify-center rounded border bg-white/95 p-0.5 shadow-2xs ${
-              item.isVeg ? 'border-emerald-600' : 'border-rose-600'
-            }`}
+          <div
+            className={`absolute top-3.5 left-3.5 flex h-5 w-5 items-center justify-center rounded border bg-white/95 p-0.5 shadow-2xs ${item.isVeg ? 'border-emerald-600' : 'border-rose-600'
+              }`}
           >
             <div className={`h-2 w-2 rounded-full ${item.isVeg ? 'bg-emerald-600' : 'bg-rose-600'}`} />
           </div>
@@ -157,11 +156,10 @@ export const DishDetailModal: React.FC<DishDetailModalProps> = ({
                     key={temp}
                     type="button"
                     onClick={() => setSelectedTemp(temp)}
-                    className={`rounded-xl border py-2 text-xs font-semibold transition-colors ${
-                      selectedTemp === temp
+                    className={`rounded-xl border py-2 text-xs font-semibold transition-colors ${selectedTemp === temp
                         ? 'border-stone-900 bg-stone-900 text-white'
                         : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-50'
-                    }`}
+                      }`}
                   >
                     {temp}
                   </button>
@@ -182,11 +180,10 @@ export const DishDetailModal: React.FC<DishDetailModalProps> = ({
                     key={milk}
                     type="button"
                     onClick={() => setSelectedMilk(milk)}
-                    className={`rounded-xl border p-2 text-left text-xs transition-colors ${
-                      selectedMilk === milk
+                    className={`rounded-xl border p-2 text-left text-xs transition-colors ${selectedMilk === milk
                         ? 'border-stone-900 bg-stone-50 text-stone-900 font-semibold'
                         : 'border-stone-200 bg-white text-stone-600 hover:bg-stone-50'
-                    }`}
+                      }`}
                   >
                     {milk}
                   </button>
@@ -207,11 +204,10 @@ export const DishDetailModal: React.FC<DishDetailModalProps> = ({
                     key={sugar}
                     type="button"
                     onClick={() => setSelectedSugar(sugar)}
-                    className={`rounded-xl border p-1.5 text-center text-xs transition-colors ${
-                      selectedSugar === sugar
+                    className={`rounded-xl border p-1.5 text-center text-xs transition-colors ${selectedSugar === sugar
                         ? 'border-stone-900 bg-stone-50 text-stone-900 font-semibold'
                         : 'border-stone-200 bg-white text-stone-600 hover:bg-stone-50'
-                    }`}
+                      }`}
                   >
                     {sugar}
                   </button>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { 
-  X, Trash2, Plus, Minus, ShoppingBag, CheckCircle2, 
+import {
+  X, Trash2, Plus, Minus, ShoppingBag, CheckCircle2,
   Clock, Coffee
 } from 'lucide-react';
 import { CartItem, ActiveOrder } from '../types';
@@ -62,7 +62,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
   return (
     <div id="cart-drawer-overlay" className="fixed inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-xs">
-      <div 
+      <div
         id="cart-drawer-panel"
         className="relative flex h-full w-full max-w-md flex-col bg-white text-stone-900 shadow-xl border-l border-stone-200"
       >
@@ -153,9 +153,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <div key={cartItem.menuItem.id} className="py-2.5 flex items-center justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
-                        <span className={`h-1.5 w-1.5 rounded-full ${
-                          cartItem.menuItem.isVeg ? 'bg-emerald-600' : 'bg-rose-600'
-                        }`} />
+                        <span className={`h-1.5 w-1.5 rounded-full ${cartItem.menuItem.isVeg ? 'bg-emerald-600' : 'bg-rose-600'
+                          }`} />
                         <h4 className="text-xs font-semibold text-stone-900 truncate">
                           {cartItem.menuItem.name}
                         </h4>

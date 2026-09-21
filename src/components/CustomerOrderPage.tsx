@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  ShoppingBag, CheckCircle2, Plus, Minus, Coffee, 
+import {
+  ShoppingBag, CheckCircle2, Plus, Minus, Coffee,
   UtensilsCrossed, Sparkles, QrCode, Search, Clock, ChevronRight,
   Layers, StickyNote, X, Leaf, Flame, Star
 } from 'lucide-react';
@@ -323,7 +323,7 @@ export const CustomerOrderPage: React.FC<CustomerOrderPageProps> = ({
       <main className="max-w-3xl mx-auto px-3.5 sm:px-6 pt-3.5 space-y-3.5">
         {/* Active Order in Progress Banner */}
         {tableActiveOrder && (
-          <div 
+          <div
             id="active-table-order-banner"
             onClick={() => {
               setOrderConfirmed({
@@ -376,7 +376,7 @@ export const CustomerOrderPage: React.FC<CustomerOrderPageProps> = ({
               Ordering directly to <strong>Table {tableNumber}</strong>. Tap any dish for rich details or tap <span className="font-bold">+</span> to add.
             </p>
           </div>
-          <button 
+          <button
             onClick={onBackToQR}
             className="text-[11px] font-bold text-amber-900 dark:text-amber-300 underline whitespace-nowrap shrink-0 hover:text-amber-700 dark:hover:text-amber-200 p-1"
           >
@@ -396,7 +396,7 @@ export const CustomerOrderPage: React.FC<CustomerOrderPageProps> = ({
             className="w-full pl-10 pr-8 py-2.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-xs sm:text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-hidden focus:border-stone-400 dark:focus:border-stone-700 focus:ring-1 focus:ring-stone-400 dark:focus:ring-stone-700 shadow-2xs min-h-[42px]"
           />
           {searchQuery && (
-            <button 
+            <button
               onClick={() => setSearchQuery('')}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 p-1"
             >
@@ -409,43 +409,39 @@ export const CustomerOrderPage: React.FC<CustomerOrderPageProps> = ({
         <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar">
           <button
             onClick={() => setDietaryFilter('all')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
-              dietaryFilter === 'all'
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${dietaryFilter === 'all'
                 ? 'bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 shadow-xs'
                 : 'bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-50 dark:hover:bg-stone-800'
-            }`}
+              }`}
           >
             <span>All Dishes</span>
           </button>
           <button
             onClick={() => setDietaryFilter('veg')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
-              dietaryFilter === 'veg'
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${dietaryFilter === 'veg'
                 ? 'bg-emerald-600 text-white shadow-xs'
                 : 'bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'
-            }`}
+              }`}
           >
             <Leaf className="h-3 w-3" />
             <span>Veg Only 🌱</span>
           </button>
           <button
             onClick={() => setDietaryFilter('non-veg')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
-              dietaryFilter === 'non-veg'
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${dietaryFilter === 'non-veg'
                 ? 'bg-rose-600 text-white shadow-xs'
                 : 'bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30'
-            }`}
+              }`}
           >
             <Flame className="h-3 w-3" />
             <span>Non-Veg 🍗</span>
           </button>
           <button
             onClick={() => setDietaryFilter('bestseller')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
-              dietaryFilter === 'bestseller'
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${dietaryFilter === 'bestseller'
                 ? 'bg-amber-500 text-stone-950 shadow-xs'
                 : 'bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/30'
-            }`}
+              }`}
           >
             <Star className="h-3 w-3" />
             <span>Chef's Bestsellers ⭐</span>
@@ -455,26 +451,24 @@ export const CustomerOrderPage: React.FC<CustomerOrderPageProps> = ({
         {/* Category Pill Buttons */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
           {categories.map((cat) => {
-            const count = cat === 'All' 
-              ? menuList.length 
+            const count = cat === 'All'
+              ? menuList.length
               : menuList.filter((m) => m.category === cat).length;
             const isSelected = selectedCategory === cat;
             return (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-2 sm:py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 min-h-[38px] ${
-                  isSelected
+                className={`px-3 py-2 sm:py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 min-h-[38px] ${isSelected
                     ? 'bg-amber-500 text-stone-950 font-bold shadow-xs'
                     : 'bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-800 hover:text-stone-900 dark:hover:text-white'
-                }`}
+                  }`}
               >
                 <span>{cat}</span>
-                <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                  isSelected 
-                    ? 'bg-stone-950/20 text-stone-950 font-bold' 
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isSelected
+                    ? 'bg-stone-950/20 text-stone-950 font-bold'
                     : 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400'
-                }`}>
+                  }`}>
                   {count}
                 </span>
               </button>
@@ -499,16 +493,15 @@ export const CustomerOrderPage: React.FC<CustomerOrderPageProps> = ({
                   <div
                     key={item.id}
                     id={`menu-item-${item.id}`}
-                    className={`flex items-stretch rounded-2xl border bg-white dark:bg-stone-900 p-3 sm:p-3.5 transition-all ${
-                      !isAvailable
+                    className={`flex items-stretch rounded-2xl border bg-white dark:bg-stone-900 p-3 sm:p-3.5 transition-all ${!isAvailable
                         ? 'border-stone-200/70 dark:border-stone-800/70 bg-stone-50/70 dark:bg-stone-950/70 opacity-75'
                         : qty > 0
-                        ? 'border-stone-900 dark:border-amber-500 ring-1 ring-stone-900 dark:ring-amber-500 shadow-md'
-                        : 'border-stone-200/90 dark:border-stone-800 hover:border-stone-300 dark:hover:border-stone-700 hover:shadow-xs'
-                    }`}
+                          ? 'border-stone-900 dark:border-amber-500 ring-1 ring-stone-900 dark:ring-amber-500 shadow-md'
+                          : 'border-stone-200/90 dark:border-stone-800 hover:border-stone-300 dark:hover:border-stone-700 hover:shadow-xs'
+                      }`}
                   >
                     {/* Item Image with Click-to-Inspect */}
-                    <div 
+                    <div
                       onClick={() => setSelectedDishDetail(item)}
                       className="relative h-24 w-24 sm:h-26 sm:w-26 rounded-xl overflow-hidden bg-stone-100 dark:bg-stone-800 shrink-0 border border-stone-200/80 dark:border-stone-700/80 cursor-pointer group"
                       title="Tap to see item details"
@@ -529,15 +522,13 @@ export const CustomerOrderPage: React.FC<CustomerOrderPageProps> = ({
 
                       {/* Veg / Non-veg indicator dot */}
                       {item.isVeg !== undefined && (
-                        <div 
+                        <div
                           title={item.isVeg ? 'Vegetarian' : 'Non-Vegetarian'}
-                          className={`absolute bottom-1 left-1 flex h-3.5 w-3.5 items-center justify-center rounded bg-white/95 dark:bg-stone-950/95 p-0.5 shadow-2xs border ${
-                            item.isVeg ? 'border-emerald-600' : 'border-rose-600'
-                          }`}
+                          className={`absolute bottom-1 left-1 flex h-3.5 w-3.5 items-center justify-center rounded bg-white/95 dark:bg-stone-950/95 p-0.5 shadow-2xs border ${item.isVeg ? 'border-emerald-600' : 'border-rose-600'
+                            }`}
                         >
-                          <div className={`h-1.5 w-1.5 rounded-full ${
-                            item.isVeg ? 'bg-emerald-600' : 'bg-rose-600'
-                          }`} />
+                          <div className={`h-1.5 w-1.5 rounded-full ${item.isVeg ? 'bg-emerald-600' : 'bg-rose-600'
+                            }`} />
                         </div>
                       )}
 
@@ -555,7 +546,7 @@ export const CustomerOrderPage: React.FC<CustomerOrderPageProps> = ({
 
                     {/* Details & Controls */}
                     <div className="ml-3 sm:ml-3.5 flex flex-col justify-between flex-1 min-w-0">
-                      <div 
+                      <div
                         onClick={() => setSelectedDishDetail(item)}
                         className="cursor-pointer"
                       >
@@ -639,7 +630,7 @@ export const CustomerOrderPage: React.FC<CustomerOrderPageProps> = ({
           className="fixed bottom-0 left-0 right-0 z-30 p-3 sm:p-4 bg-gradient-to-t from-stone-900/50 via-stone-900/20 to-transparent pointer-events-none"
         >
           <div className="max-w-3xl mx-auto bg-stone-950 text-white rounded-2xl p-3 sm:p-3.5 shadow-2xl border border-stone-800 space-y-2.5 pointer-events-auto animate-in slide-in-from-bottom-3 duration-200">
-            
+
             {/* Expandable Notes Input */}
             {showNotesInput && (
               <div className="bg-stone-900/90 rounded-xl p-2.5 border border-stone-800 animate-in fade-in-50 duration-150">
@@ -669,7 +660,7 @@ export const CustomerOrderPage: React.FC<CustomerOrderPageProps> = ({
 
             <div className="flex items-center justify-between gap-3">
               {/* Cart summary & click-to-expand drawer */}
-              <div 
+              <div
                 onClick={() => setIsCartDrawerOpen(true)}
                 className="flex items-center gap-2.5 sm:gap-3 min-w-0 pl-1 cursor-pointer group"
                 title="Tap to review cart items"
@@ -700,11 +691,10 @@ export const CustomerOrderPage: React.FC<CustomerOrderPageProps> = ({
                           e.stopPropagation();
                           setShowNotesInput(true);
                         }}
-                        className={`text-[11px] px-1.5 py-0.5 rounded border transition-colors flex items-center gap-1 ${
-                          orderNotes.trim()
+                        className={`text-[11px] px-1.5 py-0.5 rounded border transition-colors flex items-center gap-1 ${orderNotes.trim()
                             ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
                             : 'bg-stone-800 text-stone-400 border-stone-700 hover:text-stone-200'
-                        }`}
+                          }`}
                         title="Add instructions for kitchen"
                       >
                         <StickyNote className="h-2.5 w-2.5" />

@@ -87,11 +87,10 @@ export const DishDetailSheet: React.FC<DishDetailSheetProps> = ({
           <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               {item.isVeg !== undefined && (
-                <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold backdrop-blur-md shadow-xs ${
-                  item.isVeg 
-                    ? 'bg-emerald-950/85 text-emerald-300 border border-emerald-500/50' 
+                <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold backdrop-blur-md shadow-xs ${item.isVeg
+                    ? 'bg-emerald-950/85 text-emerald-300 border border-emerald-500/50'
                     : 'bg-rose-950/85 text-rose-300 border border-rose-500/50'
-                }`}>
+                  }`}>
                   <span className={`h-2 w-2 rounded-full ${item.isVeg ? 'bg-emerald-400' : 'bg-rose-400'}`} />
                   <span>{item.isVeg ? 'Vegetarian' : 'Non-Vegetarian'}</span>
                 </span>
