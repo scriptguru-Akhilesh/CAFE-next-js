@@ -20,6 +20,8 @@ interface MenuManagementProps {
   onOpenQRStand?: (table?: string) => void;
   onMenuUpdated?: (menu: SimpleMenuItem[]) => void;
   initialTab?: 'menu' | 'tables';
+  /** When used inside /admin layout — hides duplicate chrome (header, tabs, theme). */
+  variant?: 'standalone' | 'admin';
 }
 
 // Curated high-quality image presets for quick selection
@@ -44,8 +46,14 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({
   onOpenQRStand,
   onMenuUpdated,
   initialTab = 'menu',
+  variant = 'standalone',
 }) => {
+  const isAdminShell = variant === 'admin';
   const [activeTab, setActiveTab] = useState<'menu' | 'tables'>(initialTab);
+
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
   const [tables, setTables] = useState<CafeTable[]>(() => tableStorage.getTables());
 
   const [menu, setMenu] = useState<SimpleMenuItem[]>(() => {
@@ -262,45 +270,110 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({
   const inStockCount = menu.filter((m) => m.available !== false).length;
   const outOfStockCount = menu.length - inStockCount;
 
+  const pageTitle = activeTab === 'tables' ? 'Tables & QR Stands' : 'Dish Catalog';
+  const pageSubtitle =
+    activeTab === 'tables'
+      ? 'Assign table numbers, print QR stands, and preview the guest ordering flow.'
+      : 'Manage dishes, prices, and live stock availability.';
+
   return (
-    <div id="menu-management-view" className="min-h-screen bg-stone-100/70 text-stone-900 dark:bg-stone-950 dark:text-stone-100 pb-20 transition-colors duration-200">
-      {/* Toast Notification */}
+    <div
+      id="menu-management-view"
+      className={
+        isAdminShell
+          ? 'text-stone-900 dark:text-stone-100 pb-8 transition-colors duration-200'
+          : 'min-h-screen bg-[#f7f5f1] text-stone-900 dark:bg-stone-950 dark:text-stone-100 pb-16 transition-colors duration-200'
+      }
+    >
+      {/* Toast */}
       {successToast && (
-        <div className="fixed top-4 right-4 z-50 flex items-center gap-2 rounded-xl bg-stone-900 dark:bg-stone-800 px-4 py-3 text-xs font-bold text-white shadow-2xl border border-stone-700 animate-in slide-in-from-top-2 duration-200">
-          <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-          <span>{successToast}</span>
+        <div
+          className={`fixed right-4 z-[60] flex max-w-[calc(100vw-2rem)] items-center gap-2 rounded-2xl border border-stone-700 bg-stone-900 px-4 py-3 text-xs font-bold text-white shadow-2xl dark:bg-stone-800 ${isAdminShell ? 'top-20' : 'top-4'}`}
+        >
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+          <span className="truncate">{successToast}</span>
         </div>
       )}
 
-      {/* Top Header */}
-      <header className="sticky top-0 z-20 border-b border-stone-200 dark:border-stone-800 bg-white/95 dark:bg-stone-950/95 backdrop-blur-md px-4 py-3.5 shadow-2xs transition-colors">
-        <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500 text-stone-950 font-black shadow-sm">
+      {isAdminShell && (
+        <div className="mb-6 flex flex-col gap-4 border-b border-stone-200/80 pb-5 dark:border-stone-800 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0 space-y-1">
+            <h1 className="text-xl font-black tracking-tight text-stone-900 dark:text-white sm:text-2xl">
+              {pageTitle}
+            </h1>
+            <p className="max-w-2xl text-xs leading-relaxed text-stone-500 dark:text-stone-400 sm:text-sm">
+              {pageSubtitle}
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            {activeTab === 'menu' && (
+              <>
+                <button
+                  id="refresh-menu-btn"
+                  onClick={refreshLocalMenu}
+                  disabled={isLoading}
+                  title="Refresh Menu"
+                  aria-label="Refresh menu"
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-600 transition-colors hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                </button>
+                <button
+                  id="owner-add-item-btn"
+                  onClick={handleOpenAddModal}
+                  className="flex h-10 items-center gap-1.5 rounded-xl bg-stone-900 px-4 text-xs font-bold text-white shadow-sm transition-all hover:bg-stone-800 active:scale-[0.98] dark:bg-amber-500 dark:text-stone-950 dark:hover:bg-amber-400"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Menu Item
+                </button>
+              </>
+            )}
+            {activeTab === 'tables' && onOpenQRStand && (
+              <button
+                type="button"
+                id="admin-open-qr-lounge-btn"
+                onClick={() => onOpenQRStand()}
+                className="flex h-10 items-center gap-1.5 rounded-xl border border-amber-200/80 bg-amber-50 px-4 text-xs font-bold text-amber-950 shadow-sm transition-all hover:bg-amber-100 dark:border-amber-500/30 dark:bg-amber-950/40 dark:text-amber-200 dark:hover:bg-amber-950/60"
+              >
+                <QrCode className="h-4 w-4" />
+                Open QR Lounge
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Header — standalone only (admin uses layout shell) */}
+      {!isAdminShell && (
+      <header className="sticky top-0 z-30 border-b border-stone-200/80 bg-white/90 px-4 py-3 backdrop-blur-xl dark:border-stone-800 dark:bg-stone-950/90 sm:px-5">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-stone-900 text-amber-400 shadow-sm dark:bg-amber-500 dark:text-stone-950">
               <Layers className="h-5 w-5" />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="text-base sm:text-lg font-black text-stone-900 dark:text-white tracking-tight leading-tight">
+                <h1 className="truncate text-base font-black tracking-tight text-stone-900 dark:text-white sm:text-lg">
                   Menu Management
                 </h1>
-                <span className="rounded-md bg-stone-900 dark:bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-amber-300 dark:text-stone-950 uppercase tracking-wide">
+                <span className="hidden rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-800 dark:border-amber-500/30 dark:bg-amber-950/60 dark:text-amber-300 sm:inline-flex">
                   Owner Portal
                 </span>
               </div>
-              <p className="text-xs text-stone-500 dark:text-stone-400">
-                Add new dishes, update prices in ₹, and toggle stock availability in real time
+              <p className="hidden text-[11px] text-stone-500 dark:text-stone-400 sm:block">
+                Manage dishes, prices and live stock availability
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <button
               id="refresh-menu-btn"
               onClick={refreshLocalMenu}
               disabled={isLoading}
               title="Refresh Menu"
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900 text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+              aria-label="Refresh menu"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-600 transition-colors hover:bg-stone-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800"
             >
               <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             </button>
@@ -308,45 +381,58 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({
             <button
               id="owner-add-item-btn"
               onClick={handleOpenAddModal}
-              className="flex items-center gap-1.5 rounded-xl bg-stone-900 hover:bg-stone-800 dark:bg-amber-500 dark:hover:bg-amber-400 text-white dark:text-stone-950 px-4 py-2 text-xs font-bold shadow-md active:scale-95 transition-all"
+              className="flex h-9 items-center gap-1.5 rounded-xl bg-stone-900 px-3.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-stone-800 active:scale-[0.98] dark:bg-amber-500 dark:text-stone-950 dark:hover:bg-amber-400 sm:h-10 sm:px-4"
             >
               <Plus className="h-4 w-4" />
-              <span>Add New Menu Item</span>
+              <span className="hidden sm:inline">Add New Menu Item</span>
+              <span className="sm:hidden">Add Item</span>
             </button>
 
             <button
               id="owner-view-menu-btn"
               onClick={() => onBackToMenu()}
-              className="flex items-center gap-1.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 hover:bg-stone-50 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 px-3 py-2 text-xs font-semibold shadow-2xs transition-colors"
+              title="Customer Menu"
+              aria-label="Customer Menu"
+              className="hidden h-9 items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 text-xs font-semibold text-stone-700 transition-colors hover:bg-stone-50 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800 md:flex"
             >
-              <Eye className="h-3.5 w-3.5 text-stone-500 dark:text-stone-400" />
-              <span className="hidden sm:inline">Customer Menu</span>
+              <Eye className="h-3.5 w-3.5" />
+              Customer Menu
             </button>
 
             <button
               id="owner-view-kitchen-btn"
               onClick={onSwitchToKitchen}
-              className="flex items-center gap-1.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 hover:bg-stone-50 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 px-3 py-2 text-xs font-semibold shadow-2xs transition-colors"
+              title="Kitchen"
+              aria-label="Kitchen"
+              className="hidden h-9 items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 text-xs font-semibold text-stone-700 transition-colors hover:bg-stone-50 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800 lg:flex"
             >
-              <UtensilsCrossed className="h-3.5 w-3.5 text-stone-500 dark:text-stone-400" />
-              <span className="hidden sm:inline">Kitchen</span>
+              <UtensilsCrossed className="h-3.5 w-3.5" />
+              Kitchen
             </button>
 
-            <ThemeToggle className="dark:bg-stone-900 dark:border-stone-800" />
+            <ThemeToggle className="dark:border-stone-800 dark:bg-stone-900" />
           </div>
         </div>
       </header>
+      )}
 
-      {/* Main Content Area */}
-      <main className="max-w-5xl mx-auto px-4 pt-4 space-y-4">
-        {/* Owner Sub-Navigation Tabs */}
-        <div className="flex items-center gap-2 border-b border-stone-200 dark:border-stone-800 pb-2 overflow-x-auto no-scrollbar">
+      {/* Main */}
+      <main
+        className={
+          isAdminShell
+            ? 'space-y-5'
+            : 'mx-auto max-w-6xl space-y-5 px-4 pt-5 sm:px-5'
+        }
+      >
+        {/* Tabs — standalone only */}
+        {!isAdminShell && (
+        <div className="inline-flex w-full max-w-fit items-center gap-1 rounded-2xl border border-stone-200 bg-white p-1 shadow-sm dark:border-stone-800 dark:bg-stone-900">
           <button
             id="owner-tab-menu-items"
             onClick={() => setActiveTab('menu')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all min-h-[40px] whitespace-nowrap ${activeTab === 'menu'
-                ? 'bg-stone-900 dark:bg-amber-500 text-white dark:text-stone-950 shadow-sm'
-                : 'text-stone-600 dark:text-stone-400 hover:bg-stone-200/60 dark:hover:bg-stone-800'
+            className={`flex min-h-10 items-center gap-2 rounded-xl px-3.5 text-xs font-bold transition-all sm:px-4 sm:text-sm ${activeTab === 'menu'
+              ? 'bg-stone-900 text-white shadow-sm dark:bg-amber-500 dark:text-stone-950'
+              : 'text-stone-600 hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-stone-800'
               }`}
           >
             <Layers className="h-4 w-4" />
@@ -356,92 +442,117 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({
           <button
             id="owner-tab-tables-qr"
             onClick={() => setActiveTab('tables')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all min-h-[40px] whitespace-nowrap ${activeTab === 'tables'
-                ? 'bg-stone-900 dark:bg-amber-500 text-white dark:text-stone-950 shadow-sm'
-                : 'text-stone-600 dark:text-stone-400 hover:bg-stone-200/60 dark:hover:bg-stone-800'
+            className={`flex min-h-10 items-center gap-2 rounded-xl px-3.5 text-xs font-bold transition-all sm:px-4 sm:text-sm ${activeTab === 'tables'
+              ? 'bg-stone-900 text-white shadow-sm dark:bg-amber-500 dark:text-stone-950'
+              : 'text-stone-600 hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-stone-800'
               }`}
           >
             <QrCode className="h-4 w-4" />
-            <span>Tables & QR Stands ({tables.length})</span>
+            <span>Tables & QR ({tables.length})</span>
           </button>
         </div>
+        )}
 
         {activeTab === 'tables' ? (
           <TableManagement
+            variant={isAdminShell ? 'admin' : 'default'}
             onSelectTableForPreview={(tbl) => onBackToMenu(tbl)}
             onOpenQRStandForTable={onOpenQRStand}
           />
         ) : (
           <>
-            {/* KPI Stats Bar */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-3.5 shadow-2xs">
-                <span className="text-xs font-semibold text-stone-500 dark:text-stone-400">Total Items</span>
-                <div className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white mt-0.5">{menu.length}</div>
+            {/* Summary cards */}
+            <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm dark:border-stone-800 dark:bg-stone-900">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wide text-stone-500 dark:text-stone-400">
+                    Total Items
+                  </span>
+                  <ShoppingBag className="h-4 w-4 text-stone-400 dark:text-stone-500" />
+                </div>
+                <div className="mt-2 text-2xl font-black tracking-tight text-stone-900 dark:text-white">
+                  {menu.length}
+                </div>
               </div>
-              <div className="rounded-2xl border border-emerald-200/80 dark:border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/30 p-3.5 shadow-2xs">
-                <span className="text-xs font-semibold text-emerald-800 dark:text-emerald-300">In Stock</span>
-                <div className="text-xl sm:text-2xl font-black text-emerald-900 dark:text-emerald-200 mt-0.5">{inStockCount}</div>
-              </div>
-              <div className="rounded-2xl border border-amber-200/80 dark:border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/30 p-3.5 shadow-2xs">
-                <span className="text-xs font-semibold text-amber-800 dark:text-amber-300">Sold Out</span>
-                <div className="text-xl sm:text-2xl font-black text-amber-900 dark:text-amber-200 mt-0.5">{outOfStockCount}</div>
-              </div>
-              <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-3.5 shadow-2xs">
-                <span className="text-xs font-semibold text-stone-500 dark:text-stone-400">Categories</span>
-                <div className="text-xl sm:text-2xl font-black text-stone-900 dark:text-white mt-0.5">{categories.length}</div>
-              </div>
-            </div>
 
-            {/* Filters & Search */}
-            <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-3 sm:p-4 space-y-3 shadow-2xs">
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                {/* Search */}
-                <div className="relative flex-1">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 dark:text-stone-500" />
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 shadow-sm dark:border-emerald-500/20 dark:bg-emerald-950/30">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
+                    In Stock
+                  </span>
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div className="mt-2 text-2xl font-black tracking-tight text-emerald-900 dark:text-emerald-200">
+                  {inStockCount}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 shadow-sm dark:border-amber-500/20 dark:bg-amber-950/30">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wide text-amber-700 dark:text-amber-300">
+                    Sold Out
+                  </span>
+                  <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div className="mt-2 text-2xl font-black tracking-tight text-amber-900 dark:text-amber-200">
+                  {outOfStockCount}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm dark:border-stone-800 dark:bg-stone-900">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wide text-stone-500 dark:text-stone-400">
+                    Categories
+                  </span>
+                  <Layers className="h-4 w-4 text-stone-400 dark:text-stone-500" />
+                </div>
+                <div className="mt-2 text-2xl font-black tracking-tight text-stone-900 dark:text-white">
+                  {categories.length}
+                </div>
+              </div>
+            </section>
+
+            {/* Search / filters */}
+            <section className="rounded-2xl border border-stone-200 bg-white p-3 shadow-sm dark:border-stone-800 dark:bg-stone-900 sm:p-4">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                <div className="relative min-w-0 flex-1">
+                  <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400 dark:text-stone-500" />
                   <input
                     id="owner-search-input"
                     type="text"
-                    placeholder="Search dish name, category, or description..."
+                    placeholder="Search dish, category or description..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50/60 dark:bg-stone-950/60 text-xs sm:text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-hidden focus:border-stone-400 dark:focus:border-stone-600 focus:bg-white dark:focus:bg-stone-900 transition-colors"
+                    className="h-11 w-full rounded-xl border border-stone-200 bg-stone-50 pl-10 pr-4 text-xs text-stone-900 outline-none transition-colors placeholder:text-stone-400 focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-500/10 dark:border-stone-800 dark:bg-stone-950 dark:text-stone-100 dark:placeholder:text-stone-500 dark:focus:bg-stone-900"
                   />
                 </div>
 
-                {/* Stock Filter */}
-                <div className="flex items-center gap-1 bg-stone-100 dark:bg-stone-800 p-1 rounded-xl shrink-0">
-                  <button
-                    onClick={() => setStockFilter('all')}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${stockFilter === 'all' ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-white shadow-2xs' : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white'
-                      }`}
-                  >
-                    All ({menu.length})
-                  </button>
-                  <button
-                    onClick={() => setStockFilter('in_stock')}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${stockFilter === 'in_stock' ? 'bg-white dark:bg-stone-900 text-emerald-800 dark:text-emerald-300 shadow-2xs font-bold' : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white'
-                      }`}
-                  >
-                    In Stock ({inStockCount})
-                  </button>
-                  <button
-                    onClick={() => setStockFilter('out_of_stock')}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${stockFilter === 'out_of_stock' ? 'bg-white dark:bg-stone-900 text-amber-800 dark:text-amber-300 shadow-2xs font-bold' : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white'
-                      }`}
-                  >
-                    Sold Out ({outOfStockCount})
-                  </button>
+                <div className="flex w-full overflow-x-auto rounded-xl bg-stone-100 p-1 dark:bg-stone-800 lg:w-auto">
+                  {([
+                    ['all', `All (${menu.length})`],
+                    ['in_stock', `In Stock (${inStockCount})`],
+                    ['out_of_stock', `Sold Out (${outOfStockCount})`],
+                  ] as const).map(([value, label]) => (
+                    <button
+                      key={value}
+                      onClick={() => setStockFilter(value)}
+                      className={`whitespace-nowrap rounded-lg px-3 py-2 text-[11px] font-bold transition-all ${stockFilter === value
+                        ? 'bg-white text-stone-900 shadow-sm dark:bg-stone-900 dark:text-white'
+                        : 'text-stone-600 hover:text-stone-900 dark:text-stone-300 dark:hover:text-white'
+                        }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* Category Pills */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pt-1 pb-0.5 no-scrollbar">
+              <div className="mt-3 flex gap-1.5 overflow-x-auto border-t border-stone-100 pt-3 no-scrollbar dark:border-stone-800">
                 <button
                   onClick={() => setSelectedCategory('All')}
-                  className={`px-3 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${selectedCategory === 'All'
-                      ? 'bg-stone-900 dark:bg-amber-500 text-white dark:text-stone-950'
-                      : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200/70 dark:hover:bg-stone-700'
+                  className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-[11px] font-bold transition-all ${selectedCategory === 'All'
+                    ? 'bg-stone-900 text-white dark:bg-amber-500 dark:text-stone-950'
+                    : 'bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700'
                     }`}
                 >
                   All Categories
@@ -450,438 +561,436 @@ export const MenuManagement: React.FC<MenuManagementProps> = ({
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
-                    className={`px-3 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${selectedCategory === cat
-                        ? 'bg-stone-900 dark:bg-amber-500 text-white dark:text-stone-950'
-                        : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 hover:bg-stone-200/70 dark:hover:bg-stone-700'
+                    className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-[11px] font-bold transition-all ${selectedCategory === cat
+                      ? 'bg-stone-900 text-white dark:bg-amber-500 dark:text-stone-950'
+                      : 'bg-stone-100 text-stone-600 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700'
                       }`}
                   >
                     {cat} ({menu.filter((m) => m.category === cat).length})
                   </button>
                 ))}
               </div>
+            </section>
+
+            {/* List heading */}
+            <div className="flex flex-col gap-1 px-1 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-sm font-black text-stone-900 dark:text-white">Menu Items</h2>
+                <p className="text-[11px] text-stone-500 dark:text-stone-400">
+                  Showing {filteredList.length} of {menu.length} items
+                </p>
+              </div>
+              <span className="text-[10px] font-semibold text-stone-400 dark:text-stone-500">
+                Tap stock status to mark an item sold out
+              </span>
             </div>
 
-            {/* Menu Items Grid */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-xs font-semibold text-stone-500 dark:text-stone-400 px-1">
-                <span>Showing {filteredList.length} menu items</span>
-                <span>Tap "In Stock" to toggle sold-out status</span>
-              </div>
-
-              {filteredList.length === 0 ? (
-                <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-12 text-center space-y-3">
-                  <Coffee className="h-10 w-10 text-stone-300 dark:text-stone-600 mx-auto" />
-                  <h3 className="text-base font-bold text-stone-800 dark:text-stone-200">No menu items found</h3>
-                  <p className="text-xs text-stone-500 dark:text-stone-400 max-w-sm mx-auto">
-                    No items match your filter criteria. Try clearing the search or adding a new menu item.
-                  </p>
-                  <button
-                    onClick={handleOpenAddModal}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-stone-900 dark:bg-amber-500 px-4 py-2 text-xs font-bold text-white dark:text-stone-950 shadow-sm hover:bg-stone-800 dark:hover:bg-amber-400"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span>Add Item Now</span>
-                  </button>
+            {/* Menu list */}
+            {filteredList.length === 0 ? (
+              <div className="rounded-3xl border border-dashed border-stone-300 bg-white px-6 py-16 text-center shadow-sm dark:border-stone-700 dark:bg-stone-900">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-stone-100 text-stone-400 dark:bg-stone-800 dark:text-stone-500">
+                  <Coffee className="h-7 w-7" />
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {filteredList.map((item) => {
-                    const isAvailable = item.available !== false;
-                    return (
-                      <div
-                        key={item.id}
-                        id={`owner-item-${item.id}`}
-                        className={`rounded-2xl border bg-white dark:bg-stone-900 p-3.5 flex flex-col justify-between transition-all shadow-2xs ${!isAvailable
-                            ? 'border-stone-200/70 dark:border-stone-800/70 bg-stone-50/70 dark:bg-stone-950/70 opacity-80'
-                            : 'border-stone-200/90 dark:border-stone-800 hover:border-stone-300 dark:hover:border-stone-700'
-                          }`}
-                      >
-                        <div className="flex gap-3">
-                          {/* Image Thumbnail */}
-                          <div className="relative h-22 w-22 sm:h-24 sm:w-24 rounded-xl overflow-hidden bg-stone-100 dark:bg-stone-800 border border-stone-200/80 dark:border-stone-700/80 shrink-0">
-                            {item.image ? (
-                              <img
-                                src={item.image}
-                                alt={item.name}
-                                className={`h-full w-full object-cover ${!isAvailable ? 'grayscale-[60%]' : ''}`}
-                                loading="lazy"
-                                referrerPolicy="no-referrer"
-                              />
-                            ) : (
-                              <div className="h-full w-full flex items-center justify-center text-stone-400 dark:text-stone-500">
-                                <Coffee className="h-6 w-6" />
-                              </div>
-                            )}
+                <h3 className="mt-4 text-sm font-black text-stone-800 dark:text-stone-200">No menu items found</h3>
+                <p className="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-stone-500 dark:text-stone-400">
+                  Try changing your search or filters, or add a new item to the menu.
+                </p>
+                <button
+                  onClick={handleOpenAddModal}
+                  className="mt-5 inline-flex items-center gap-2 rounded-xl bg-stone-900 px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-stone-800 dark:bg-amber-500 dark:text-stone-950 dark:hover:bg-amber-400"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Item
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+                {filteredList.map((item) => {
+                  const isAvailable = item.available !== false;
 
-                            {/* Veg / Non-veg indicator dot */}
-                            <div
-                              title={item.isVeg !== false ? 'Vegetarian' : 'Non-Vegetarian'}
-                              className={`absolute bottom-1.5 left-1.5 flex h-4 w-4 items-center justify-center rounded bg-white/95 dark:bg-stone-950/95 p-0.5 shadow-2xs border ${item.isVeg !== false ? 'border-emerald-600' : 'border-rose-600'
+                  return (
+                    <article
+                      key={item.id}
+                      id={`owner-item-${item.id}`}
+                      className={`group rounded-3xl border p-3.5 sm:p-4 transition-all ${isAvailable
+                        ? 'border-stone-200 bg-white hover:-translate-y-0.5 hover:border-stone-300 hover:shadow-md dark:border-stone-800 dark:bg-stone-900 dark:hover:border-stone-700'
+                        : 'border-stone-200/80 bg-stone-50/80 opacity-80 dark:border-stone-800 dark:bg-stone-950/70'
+                        }`}
+                    >
+                      <div className="flex gap-3.5">
+                        <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-stone-200 bg-stone-100 dark:border-stone-700 dark:bg-stone-800 sm:h-28 sm:w-28">
+                          {item.image ? (
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className={`h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03] ${!isAvailable ? 'grayscale' : ''
                                 }`}
-                            >
-                              <div className={`h-1.5 w-1.5 rounded-full ${item.isVeg !== false ? 'bg-emerald-600' : 'bg-rose-600'
-                                }`} />
+                              loading="lazy"
+                              referrerPolicy="no-referrer"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-stone-400 dark:text-stone-500">
+                              <Coffee className="h-7 w-7" />
                             </div>
+                          )}
 
-                            {item.badge && (
-                              <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-stone-900/90 dark:bg-amber-500 dark:text-stone-950 text-white font-bold text-[8px] uppercase tracking-wider backdrop-blur-xs">
-                                {item.badge}
-                              </span>
-                            )}
-                          </div>
+                          {item.badge && (
+                            <span className="absolute left-1.5 top-1.5 max-w-[calc(100%-0.75rem)] truncate rounded-md bg-stone-900/90 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wide text-white backdrop-blur-sm dark:bg-amber-500 dark:text-stone-950">
+                              {item.badge}
+                            </span>
+                          )}
 
-                          {/* Content Details */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2">
-                              <div>
-                                <h3 className="font-bold text-sm text-stone-900 dark:text-white leading-snug truncate">
-                                  {item.name}
-                                </h3>
-                                <span className="text-[11px] font-semibold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 px-1.5 py-0.5 rounded border border-amber-200/60 dark:border-amber-500/30 inline-block mt-0.5">
-                                  {item.category || 'General'}
-                                </span>
-                              </div>
-
-                              {/* Price in INR */}
-                              <div className="text-right shrink-0">
-                                <span className="font-mono text-base font-extrabold text-stone-900 dark:text-amber-400 block">
-                                  ₹{item.price}
-                                </span>
-                                {item.prepTime && (
-                                  <span className="text-[10px] text-stone-400 dark:text-stone-500 block font-medium">
-                                    {item.prepTime}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-
-                            {item.description && (
-                              <p className="text-xs text-stone-500 dark:text-stone-400 line-clamp-2 mt-1.5 leading-relaxed">
-                                {item.description}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Bottom Action Strip */}
-                        <div className="mt-3 pt-2.5 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between gap-2">
-                          {/* Availability Toggle Switch */}
-                          <button
-                            id={`toggle-stock-${item.id}`}
-                            onClick={() => handleToggleStock(item.id, item.available)}
-                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${isAvailable
-                                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 hover:bg-emerald-100 dark:hover:bg-emerald-950/60'
-                                : 'bg-stone-200 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border border-stone-300 dark:border-stone-700 hover:bg-stone-300/80'
+                          <div
+                            title={item.isVeg !== false ? 'Vegetarian' : 'Non-Vegetarian'}
+                            className={`absolute bottom-1.5 left-1.5 flex h-5 w-5 items-center justify-center rounded-md border bg-white/95 p-0.5 shadow-sm dark:bg-stone-950/95 ${item.isVeg !== false ? 'border-emerald-600' : 'border-rose-600'
                               }`}
                           >
-                            <span className={`h-2 w-2 rounded-full ${isAvailable ? 'bg-emerald-500' : 'bg-stone-400'}`} />
-                            <span>{isAvailable ? 'In Stock' : 'Sold Out'}</span>
-                          </button>
-
-                          {/* Edit and Delete Buttons */}
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              id={`edit-item-${item.id}`}
-                              onClick={() => handleOpenEditModal(item)}
-                              className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-200 hover:bg-stone-50 dark:hover:bg-stone-700 text-xs font-semibold shadow-2xs transition-colors"
-                            >
-                              <Edit2 className="h-3 w-3 text-stone-500 dark:text-stone-400" />
-                              <span>Edit</span>
-                            </button>
-                            <button
-                              id={`delete-item-${item.id}`}
-                              onClick={() => handleDeleteItem(item)}
-                              className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-800 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 text-xs font-semibold shadow-2xs transition-colors"
-                              title="Remove item"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                              <span>Delete</span>
-                            </button>
+                            <div
+                              className={`h-1.5 w-1.5 rounded-full ${item.isVeg !== false ? 'bg-emerald-600' : 'bg-rose-600'
+                                }`}
+                            />
                           </div>
                         </div>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <h3 className="truncate text-sm font-black leading-tight text-stone-900 dark:text-white">
+                                {item.name}
+                              </h3>
+                              <div className="mt-1 inline-flex max-w-full rounded-lg border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-800 dark:border-amber-500/30 dark:bg-amber-950/50 dark:text-amber-300">
+                                <span className="truncate">{item.category || 'General'}</span>
+                              </div>
+                            </div>
+
+                            <div className="shrink-0 text-right">
+                              <div className="text-base font-black tracking-tight text-stone-900 dark:text-amber-400">
+                                ₹{item.price}
+                              </div>
+                              {item.prepTime && (
+                                <div className="mt-0.5 text-[10px] font-semibold text-stone-400 dark:text-stone-500">
+                                  {item.prepTime}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {item.description && (
+                            <p className="mt-2 line-clamp-2 text-[11px] leading-relaxed text-stone-500 dark:text-stone-400">
+                              {item.description}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+
+                      <div className="mt-4 flex items-center justify-between gap-2 border-t border-stone-100 pt-3 dark:border-stone-800">
+                        <button
+                          id={`toggle-stock-${item.id}`}
+                          onClick={() => handleToggleStock(item.id, item.available)}
+                          className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-[11px] font-bold transition-colors ${isAvailable
+                            ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:border-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-950/60'
+                            : 'border-stone-300 bg-stone-100 text-stone-600 hover:bg-stone-200 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-400 dark:hover:bg-stone-700'
+                            }`}
+                        >
+                          <span className={`h-2 w-2 rounded-full ${isAvailable ? 'bg-emerald-500' : 'bg-stone-400'}`} />
+                          {isAvailable ? 'In Stock' : 'Sold Out'}
+                        </button>
+
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            id={`edit-item-${item.id}`}
+                            onClick={() => handleOpenEditModal(item)}
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 py-2 text-[11px] font-bold text-stone-700 transition-colors hover:bg-stone-50 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-200 dark:hover:bg-stone-800"
+                          >
+                            <Edit2 className="h-3.5 w-3.5" />
+                            Edit
+                          </button>
+                          <button
+                            id={`delete-item-${item.id}`}
+                            onClick={() => handleDeleteItem(item)}
+                            title="Remove item"
+                            aria-label={`Delete ${item.name}`}
+                            className="inline-flex items-center justify-center rounded-xl border border-rose-200 bg-white p-2 text-rose-600 transition-colors hover:bg-rose-50 dark:border-rose-500/20 dark:bg-stone-900 dark:text-rose-400 dark:hover:bg-rose-950/30"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
           </>
         )}
       </main>
 
-      {/* ========================================================= */}
-      {/* ADD / EDIT ITEM MODAL */}
-      {/* ========================================================= */}
+      {/* Add / Edit Modal */}
       {isModalOpen && (
         <div
           id="menu-item-modal-overlay"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs overflow-y-auto"
+          className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/70 p-3 backdrop-blur-sm sm:p-5"
         >
-          <div className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-stone-900 p-6 shadow-2xl border border-stone-200 dark:border-stone-800 my-8 max-h-[90vh] overflow-y-auto">
-            {/* Close Button */}
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-700 dark:hover:text-stone-200 transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </button>
-
-            <div className="mb-4">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 text-xs font-semibold mb-1 border border-amber-200/50 dark:border-amber-500/30">
-                <Sparkles className="h-3.5 w-3.5 text-amber-700 dark:text-amber-400" />
-                <span>{editingItem ? 'Edit Item' : 'New Dish / Beverage'}</span>
-              </div>
-              <h2 className="text-lg font-black text-stone-900 dark:text-white tracking-tight">
-                {editingItem ? `Edit "${editingItem.name}"` : 'Add Menu Item'}
-              </h2>
-              <p className="text-xs text-stone-500 dark:text-stone-400">
-                Changes update your live customer QR menu immediately in INR (₹).
-              </p>
-            </div>
-
-            {formError && (
-              <div className="mb-4 flex items-center gap-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 p-3 text-xs font-medium text-rose-700 dark:text-rose-300">
-                <AlertCircle className="h-4 w-4 shrink-0" />
-                <span>{formError}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleSaveItem} className="space-y-4">
-              {/* Item Name */}
-              <div>
-                <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">
-                  Item Name *
-                </label>
-                <input
-                  id="form-item-name"
-                  type="text"
-                  required
-                  placeholder="e.g. Masala Chai, Filter Coffee, Paneer Roll"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 px-3 py-2 text-sm text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-900 focus:outline-hidden focus:border-stone-400 dark:focus:border-stone-500"
-                />
-              </div>
-
-              {/* Price & Category in row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Price in INR */}
-                <div>
-                  <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">
-                    Price in INR (₹) *
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-stone-500 dark:text-stone-400 text-sm">
-                      ₹
-                    </span>
-                    <input
-                      id="form-item-price"
-                      type="number"
-                      required
-                      min="0"
-                      step="1"
-                      placeholder="e.g. 180"
-                      value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                      className="w-full rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 pl-8 pr-3 py-2 text-sm text-stone-900 dark:text-stone-100 font-mono font-bold focus:bg-white dark:focus:bg-stone-900 focus:outline-hidden focus:border-stone-400 dark:focus:border-stone-500"
-                    />
-                  </div>
-                </div>
-
-                {/* Category */}
-                <div>
-                  <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">
-                    Category
-                  </label>
-                  <select
-                    id="form-item-category"
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 px-3 py-2 text-sm text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-900 focus:outline-hidden focus:border-stone-400 dark:focus:border-stone-500"
-                  >
-                    {categories.map((c) => (
-                      <option key={c} value={c} className="bg-white dark:bg-stone-900">{c}</option>
-                    ))}
-                    <option value="custom" className="bg-white dark:bg-stone-900">+ Add New Category...</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* If "Add New Category" selected */}
-              {formData.category === 'custom' && (
-                <div>
-                  <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">
-                    New Category Name
-                  </label>
-                  <input
-                    id="form-custom-category"
-                    type="text"
-                    placeholder="e.g. Quick Bites, Smoothies, Mocktails"
-                    value={formData.customCategory}
-                    onChange={(e) => setFormData({ ...formData, customCategory: e.target.value })}
-                    className="w-full rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 px-3 py-2 text-sm text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-900 focus:outline-hidden focus:border-stone-400 dark:focus:border-stone-500"
-                  />
-                </div>
-              )}
-
-              {/* Description */}
-              <div>
-                <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">
-                  Description
-                </label>
-                <textarea
-                  id="form-item-desc"
-                  rows={2}
-                  placeholder="Ingredients, preparation notes, flavors..."
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 px-3 py-2 text-xs text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-900 focus:outline-hidden focus:border-stone-400 dark:focus:border-stone-500"
-                />
-              </div>
-
-              {/* Prep Time, Badge, Diet in grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">
-                    Prep Time
-                  </label>
-                  <input
-                    id="form-item-preptime"
-                    type="text"
-                    placeholder="e.g. 3-5 min, Ready"
-                    value={formData.prepTime}
-                    onChange={(e) => setFormData({ ...formData, prepTime: e.target.value })}
-                    className="w-full rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 px-3 py-2 text-xs text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-900 focus:outline-hidden focus:border-stone-400 dark:focus:border-stone-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">
-                    Badge / Tag
-                  </label>
-                  <input
-                    id="form-item-badge"
-                    type="text"
-                    placeholder="e.g. Bestseller, New"
-                    value={formData.badge}
-                    onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
-                    className="w-full rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 px-3 py-2 text-xs text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-900 focus:outline-hidden focus:border-stone-400 dark:focus:border-stone-500"
-                  />
-                </div>
-
-                {/* Dietary Flag: Veg / Non-Veg */}
-                <div>
-                  <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">
-                    Dietary Type
-                  </label>
-                  <div className="flex items-center gap-2 pt-1">
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, isVeg: true })}
-                      className={`flex-1 py-1.5 rounded-lg text-xs font-bold border flex items-center justify-center gap-1 transition-all ${formData.isVeg
-                          ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300'
-                          : 'border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-stone-500 dark:text-stone-400'
-                        }`}
-                    >
-                      <span className="h-2 w-2 rounded-full bg-emerald-600" />
-                      <span>Veg</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, isVeg: false })}
-                      className={`flex-1 py-1.5 rounded-lg text-xs font-bold border flex items-center justify-center gap-1 transition-all ${!formData.isVeg
-                          ? 'border-rose-600 bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300'
-                          : 'border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-stone-500 dark:text-stone-400'
-                        }`}
-                    >
-                      <span className="h-2 w-2 rounded-full bg-rose-600" />
-                      <span>Non-Veg</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Image URL & Preset Selection */}
-              <div>
-                <label className="block text-xs font-bold text-stone-800 dark:text-stone-200 mb-1">
-                  Item Photo
-                </label>
-                <input
-                  id="form-item-image"
-                  type="url"
-                  placeholder="https://images.unsplash.com/..."
-                  value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  className="w-full rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 px-3 py-2 text-xs text-stone-900 dark:text-stone-100 focus:bg-white dark:focus:bg-stone-900 focus:outline-hidden focus:border-stone-400 dark:focus:border-stone-500 font-mono mb-2"
-                />
-
-                {/* Quick Presets Picker */}
-                <div>
-                  <span className="text-[11px] font-semibold text-stone-500 dark:text-stone-400 block mb-1">
-                    Or pick a preset photo:
-                  </span>
-                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5 max-h-28 overflow-y-auto p-1 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl">
-                    {IMAGE_PRESETS.map((preset, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => setFormData({ ...formData, image: preset.url })}
-                        className={`relative rounded-lg overflow-hidden border transition-all ${formData.image === preset.url
-                            ? 'border-amber-500 ring-2 ring-amber-500 scale-95'
-                            : 'border-stone-200 dark:border-stone-700 hover:border-stone-400 dark:hover:border-stone-500'
-                          }`}
-                        title={preset.name}
-                      >
-                        <img
-                          src={preset.url}
-                          alt={preset.name}
-                          className="h-12 w-full object-cover"
-                          referrerPolicy="no-referrer"
-                        />
-                        <span className="absolute inset-x-0 bottom-0 bg-black/60 text-white text-[8px] font-bold py-0.5 truncate px-1 text-center">
-                          {preset.name}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Availability Toggle in Form */}
-              <div className="flex items-center justify-between p-3 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700">
-                <div>
-                  <span className="text-xs font-bold text-stone-900 dark:text-white block">Available In Stock</span>
-                  <span className="text-[11px] text-stone-500 dark:text-stone-400">
-                    If toggled off, customers cannot order this item
-                  </span>
-                </div>
-                <input
-                  id="form-item-available"
-                  type="checkbox"
-                  checked={formData.available}
-                  onChange={(e) => setFormData({ ...formData, available: e.target.checked })}
-                  className="h-5 w-5 rounded text-amber-600 focus:ring-amber-500 cursor-pointer"
-                />
-              </div>
-
-              {/* Submit Buttons */}
-              <div className="flex items-center gap-2 pt-2">
-                <button
-                  id="save-item-submit-btn"
-                  type="submit"
-                  className="flex-1 py-3 rounded-xl bg-stone-900 dark:bg-amber-500 text-white dark:text-stone-950 font-bold text-sm hover:bg-stone-800 dark:hover:bg-amber-400 active:scale-98 transition-all shadow-md"
-                >
-                  {editingItem ? 'Update Menu Item' : 'Add to Menu (₹)'}
-                </button>
+          <div className="flex min-h-full items-center justify-center py-4 sm:py-8">
+            <div className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-2xl dark:border-stone-800 dark:bg-stone-900">
+              <div className="sticky top-0 z-10 border-b border-stone-100 bg-white/95 px-5 py-4 backdrop-blur dark:border-stone-800 dark:bg-stone-900/95 sm:px-6">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="py-3 px-4 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-medium text-xs hover:bg-stone-50 dark:hover:bg-stone-700"
+                  aria-label="Close modal"
+                  className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-xl text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-700 dark:hover:bg-stone-800 dark:hover:text-stone-200"
                 >
-                  Cancel
+                  <X className="h-4 w-4" />
                 </button>
+
+                <div className="pr-12">
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-amber-800 dark:border-amber-500/30 dark:bg-amber-950/50 dark:text-amber-300">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    {editingItem ? 'Edit Item' : 'New Dish / Beverage'}
+                  </div>
+                  <h2 className="mt-2 text-lg font-black tracking-tight text-stone-900 dark:text-white">
+                    {editingItem ? `Edit "${editingItem.name}"` : 'Add Menu Item'}
+                  </h2>
+                  <p className="mt-1 text-[11px] leading-relaxed text-stone-500 dark:text-stone-400">
+                    Keep your customer QR menu updated with the latest dish details and pricing.
+                  </p>
+                </div>
               </div>
-            </form>
+
+              <div className="max-h-[calc(100vh-7rem)] overflow-y-auto px-5 py-5 sm:px-6">
+                {formError && (
+                  <div className="mb-4 flex items-start gap-2 rounded-2xl border border-rose-200 bg-rose-50 p-3 text-xs font-medium text-rose-700 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-300">
+                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                    <span>{formError}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleSaveItem} className="space-y-5">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="sm:col-span-2">
+                      <label htmlFor="form-item-name" className="mb-1.5 block text-xs font-bold text-stone-800 dark:text-stone-200">
+                        Item Name *
+                      </label>
+                      <input
+                        id="form-item-name"
+                        type="text"
+                        required
+                        placeholder="e.g. Masala Chai, Filter Coffee, Paneer Roll"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        className="h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-sm text-stone-900 outline-none transition-colors placeholder:text-stone-400 focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-500/10 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:focus:bg-stone-900"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="form-item-price" className="mb-1.5 block text-xs font-bold text-stone-800 dark:text-stone-200">
+                        Price in INR (₹) *
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-stone-500 dark:text-stone-400">₹</span>
+                        <input
+                          id="form-item-price"
+                          type="number"
+                          required
+                          min="0"
+                          step="1"
+                          placeholder="180"
+                          value={formData.price}
+                          onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                          className="h-11 w-full rounded-xl border border-stone-200 bg-stone-50 pl-8 pr-3 text-sm font-mono font-bold text-stone-900 outline-none transition-colors placeholder:text-stone-400 focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-500/10 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:focus:bg-stone-900"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="form-item-category" className="mb-1.5 block text-xs font-bold text-stone-800 dark:text-stone-200">
+                        Category
+                      </label>
+                      <select
+                        id="form-item-category"
+                        value={formData.category}
+                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                        className="h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-sm text-stone-900 outline-none transition-colors focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-500/10 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:focus:bg-stone-900"
+                      >
+                        {categories.map((c) => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
+                        <option value="custom">+ Add New Category...</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {formData.category === 'custom' && (
+                    <div>
+                      <label htmlFor="form-custom-category" className="mb-1.5 block text-xs font-bold text-stone-800 dark:text-stone-200">
+                        New Category Name
+                      </label>
+                      <input
+                        id="form-custom-category"
+                        type="text"
+                        placeholder="e.g. Quick Bites, Smoothies, Mocktails"
+                        value={formData.customCategory}
+                        onChange={(e) => setFormData({ ...formData, customCategory: e.target.value })}
+                        className="h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-sm text-stone-900 outline-none transition-colors placeholder:text-stone-400 focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-500/10 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:focus:bg-stone-900"
+                      />
+                    </div>
+                  )}
+
+                  <div>
+                    <label htmlFor="form-item-desc" className="mb-1.5 block text-xs font-bold text-stone-800 dark:text-stone-200">
+                      Description
+                    </label>
+                    <textarea
+                      id="form-item-desc"
+                      rows={3}
+                      placeholder="Ingredients, preparation notes, flavors..."
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      className="w-full resize-none rounded-xl border border-stone-200 bg-stone-50 px-3 py-2.5 text-xs leading-relaxed text-stone-900 outline-none transition-colors placeholder:text-stone-400 focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-500/10 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:focus:bg-stone-900"
+                    />
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <div>
+                      <label htmlFor="form-item-preptime" className="mb-1.5 block text-xs font-bold text-stone-800 dark:text-stone-200">
+                        Prep Time
+                      </label>
+                      <input
+                        id="form-item-preptime"
+                        type="text"
+                        placeholder="3-5 min"
+                        value={formData.prepTime}
+                        onChange={(e) => setFormData({ ...formData, prepTime: e.target.value })}
+                        className="h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-xs text-stone-900 outline-none transition-colors placeholder:text-stone-400 focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-500/10 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:focus:bg-stone-900"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="form-item-badge" className="mb-1.5 block text-xs font-bold text-stone-800 dark:text-stone-200">
+                        Badge / Tag
+                      </label>
+                      <input
+                        id="form-item-badge"
+                        type="text"
+                        placeholder="Bestseller, New"
+                        value={formData.badge}
+                        onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
+                        className="h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-xs text-stone-900 outline-none transition-colors placeholder:text-stone-400 focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-500/10 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:focus:bg-stone-900"
+                      />
+                    </div>
+
+                    <div>
+                      <span className="mb-1.5 block text-xs font-bold text-stone-800 dark:text-stone-200">Dietary Type</span>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setFormData({ ...formData, isVeg: true })}
+                          className={`flex h-11 items-center justify-center gap-1.5 rounded-xl border text-xs font-bold transition-all ${formData.isVeg
+                            ? 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+                            : 'border-stone-200 bg-stone-50 text-stone-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-400'
+                            }`}
+                        >
+                          <span className="h-2 w-2 rounded-full bg-emerald-600" />
+                          Veg
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFormData({ ...formData, isVeg: false })}
+                          className={`flex h-11 items-center justify-center gap-1.5 rounded-xl border text-xs font-bold transition-all ${!formData.isVeg
+                            ? 'border-rose-500 bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300'
+                            : 'border-stone-200 bg-stone-50 text-stone-500 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-400'
+                            }`}
+                        >
+                          <span className="h-2 w-2 rounded-full bg-rose-600" />
+                          Non-Veg
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="mb-1.5 flex items-center justify-between gap-2">
+                      <label htmlFor="form-item-image" className="text-xs font-bold text-stone-800 dark:text-stone-200">
+                        Item Photo
+                      </label>
+                      <span className="text-[10px] font-semibold text-stone-400 dark:text-stone-500">URL or preset</span>
+                    </div>
+                    <input
+                      id="form-item-image"
+                      type="url"
+                      placeholder="https://images.unsplash.com/..."
+                      value={formData.image}
+                      onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                      className="h-11 w-full rounded-xl border border-stone-200 bg-stone-50 px-3 text-xs font-mono text-stone-900 outline-none transition-colors placeholder:text-stone-400 focus:border-amber-500 focus:bg-white focus:ring-2 focus:ring-amber-500/10 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-100 dark:focus:bg-stone-900"
+                    />
+
+                    <div className="mt-3 overflow-hidden rounded-2xl border border-stone-200 dark:border-stone-700">
+                      <div className="flex items-center justify-between bg-stone-50 px-3 py-2 dark:bg-stone-800">
+                        <span className="text-[11px] font-bold text-stone-600 dark:text-stone-300">Quick preset photos</span>
+                        <span className="text-[10px] text-stone-400">Select one</span>
+                      </div>
+                      <div className="grid grid-cols-4 gap-2 p-2 sm:grid-cols-6">
+                        {IMAGE_PRESETS.map((preset, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, image: preset.url })}
+                            title={preset.name}
+                            className={`relative overflow-hidden rounded-xl border transition-all ${formData.image === preset.url
+                              ? 'border-amber-500 ring-2 ring-amber-500/30'
+                              : 'border-stone-200 hover:border-stone-400 dark:border-stone-700 dark:hover:border-stone-500'
+                              }`}
+                          >
+                            <img
+                              src={preset.url}
+                              alt={preset.name}
+                              className="h-14 w-full object-cover"
+                              referrerPolicy="no-referrer"
+                            />
+                            <span className="absolute inset-x-0 bottom-0 truncate bg-black/60 px-1 py-1 text-center text-[8px] font-bold text-white">
+                              {preset.name}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <label className="flex cursor-pointer items-center justify-between gap-4 rounded-2xl border border-stone-200 bg-stone-50 p-3.5 dark:border-stone-700 dark:bg-stone-800">
+                    <div>
+                      <span className="block text-xs font-black text-stone-900 dark:text-white">Available In Stock</span>
+                      <span className="mt-0.5 block text-[11px] leading-relaxed text-stone-500 dark:text-stone-400">
+                        Customers can order this item while it is enabled.
+                      </span>
+                    </div>
+                    <input
+                      id="form-item-available"
+                      type="checkbox"
+                      checked={formData.available}
+                      onChange={(e) => setFormData({ ...formData, available: e.target.checked })}
+                      className="h-5 w-5 shrink-0 cursor-pointer rounded border-stone-300 text-amber-600 focus:ring-amber-500 dark:border-stone-600"
+                    />
+                  </label>
+
+                  <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row">
+                    <button
+                      type="button"
+                      onClick={() => setIsModalOpen(false)}
+                      className="h-11 rounded-xl border border-stone-200 bg-white px-5 text-xs font-bold text-stone-700 transition-colors hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700 sm:w-auto"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      id="save-item-submit-btn"
+                      type="submit"
+                      className="h-11 flex-1 rounded-xl bg-stone-900 px-5 text-sm font-black text-white shadow-sm transition-all hover:bg-stone-800 active:scale-[0.99] dark:bg-amber-500 dark:text-stone-950 dark:hover:bg-amber-400"
+                    >
+                      {editingItem ? 'Update Menu Item' : 'Add to Menu (₹)'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
           </div>
         </div>
       )}

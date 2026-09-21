@@ -1,44 +1,25 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { TableQRScreen } from '@/components/TableQRScreen';
-
-function HomePageContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [tableNumber, setTableNumber] = useState<string>('5');
-
-  useEffect(() => {
-    const tableParam = searchParams.get('table') || searchParams.get('t');
-    if (tableParam) {
-      setTableNumber(tableParam);
-    }
-  }, [searchParams]);
-
-  const handleTableChange = (newTable: string) => {
-    setTableNumber(newTable);
-    router.replace(`/?table=${encodeURIComponent(newTable)}`);
-  };
-
-  const handleOpenMenu = () => {
-    router.push(`/order?table=${encodeURIComponent(tableNumber)}`);
-  };
-
-  return (
-    <TableQRScreen
-      tableNumber={tableNumber}
-      onTableChange={handleTableChange}
-      onOpenMenu={handleOpenMenu}
-      showAdminNavigation={false}
-    />
-  );
-}
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Coffee } from 'lucide-react';
 
 export default function HomePage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace('/admin');
+  }, [router]);
+
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-stone-950 text-stone-500">Loading Corner Roastery...</div>}>
-      <HomePageContent />
-    </Suspense>
+    <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-stone-100 dark:bg-stone-950 px-6 text-center">
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-stone-900 dark:bg-amber-500 text-amber-100 dark:text-stone-950 shadow-lg animate-pulse">
+        <Coffee className="h-7 w-7" />
+      </div>
+      <div className="space-y-1">
+        <p className="text-sm font-bold text-stone-800 dark:text-stone-200">Corner Roastery</p>
+        <p className="text-xs text-stone-500 dark:text-stone-400">Opening admin dashboard…</p>
+      </div>
+    </div>
   );
 }

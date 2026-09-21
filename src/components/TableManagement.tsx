@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import QRCode from 'qrcode';
-import { 
-  Plus, Edit2, Trash2, Search, QrCode, 
+import {
+  Plus, Edit2, Trash2, Search, QrCode,
   ArrowRight, Printer, Check, Copy, CheckCircle2,
-  X
+  X, Users, Sparkles, ExternalLink, UtensilsCrossed,
 } from 'lucide-react';
 import { CafeTable, KitchenOrder } from '../types';
 import { tableStorage } from '../utils/tableStorage';
@@ -14,12 +14,15 @@ import { orderStorage } from '../utils/orderStorage';
 interface TableManagementProps {
   onSelectTableForPreview?: (tableNumber: string) => void;
   onOpenQRStandForTable?: (tableNumber: string) => void;
+  variant?: 'default' | 'admin';
 }
 
 export const TableManagement: React.FC<TableManagementProps> = ({
   onSelectTableForPreview,
   onOpenQRStandForTable,
+  variant = 'default',
 }) => {
+  const isAdminLayout = variant === 'admin';
   const [tables, setTables] = useState<CafeTable[]>(() => tableStorage.getTables());
   const [activeOrders, setActiveOrders] = useState<KitchenOrder[]>(() => orderStorage.getOrders());
   
@@ -160,67 +163,144 @@ export const TableManagement: React.FC<TableManagementProps> = ({
     showToast(`Order URL copied for Table ${tableNum}!`);
   };
 
+  const activeTableOrderCount = useMemo(() => {
+    const busy = new Set<string>();
+    activeOrders.forEach((o) => {
+      if (o.status !== 'Served') busy.add(o.tableNumber);
+    });
+    return busy.size;
+  }, [activeOrders]);
+
+  const idleTableCount = Math.max(0, tables.length - activeTableOrderCount);
+
   // Check if a table has active unserved kitchen orders
   const hasActiveOrder = (tableNum: string) => {
     return activeOrders.some((o) => o.tableNumber === tableNum && o.status !== 'Served');
   };
 
-  return (
-    <div id="table-management-panel" className="space-y-4">
-      {/* Toast Notification */}
-      {toastMessage && (
-        <div className="fixed top-14 right-4 z-50 rounded-2xl bg-stone-900 dark:bg-amber-500 text-white dark:text-stone-950 px-4 py-3 shadow-2xl flex items-center gap-2 border border-stone-700 dark:border-amber-400 animate-in slide-in-from-top-3 duration-200">
-          <CheckCircle2 className="h-4 w-4 text-emerald-400 dark:text-stone-950" />
-          <span className="text-xs font-bold">{toastMessage}</span>
-        </div>
-      )}
+  const toastPositionClass = isAdminLayout ? 'top-20' : 'top-14';
 
-      {/* Top Bar: Search and Simple Add Button */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-stone-900 p-3.5 sm:p-4 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-2xs">
-        {/* Search by Name */}
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 dark:text-stone-500" />
-          <input
-            id="search-tables-input"
-            type="text"
-            placeholder="Search tables by name..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-8 py-2 text-xs sm:text-sm rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:bg-white dark:focus:bg-stone-900 focus:outline-hidden focus:border-amber-500 transition-colors min-h-[40px]"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-stone-400 hover:text-stone-700 dark:hover:text-stone-200"
-            >
-              ✕
-            </button>
-          )}
+  const statsSection = isAdminLayout && (
+    <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="rounded-2xl border border-amber-200/70 bg-gradient-to-br from-amber-50 to-white p-4 shadow-sm dark:border-amber-500/20 dark:from-amber-950/40 dark:to-stone-900">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-bold uppercase tracking-wide text-amber-800/80 dark:text-amber-300/90">
+            Total Tables
+          </span>
+          <Users className="h-4 w-4 text-amber-600 dark:text-amber-400" />
         </div>
-
-        {/* Add Table CTA */}
-        <button
-          id="create-new-table-btn"
-          onClick={handleOpenAddModal}
-          className="flex items-center justify-center gap-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-98 text-stone-950 px-4 py-2.5 text-xs sm:text-sm font-black shadow-md transition-all min-h-[42px] shrink-0"
-        >
-          <Plus className="h-4 w-4" />
-          <span>Add Table</span>
-        </button>
+        <p className="mt-2 text-3xl font-black tracking-tight text-stone-900 dark:text-white">
+          {tables.length}
+        </p>
+        <p className="mt-1 text-[11px] text-amber-900/60 dark:text-amber-200/50">
+          Each table gets its own scannable menu link
+        </p>
       </div>
 
-      {/* Tables List / Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="rounded-2xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50/90 to-white p-4 shadow-sm dark:border-emerald-500/20 dark:from-emerald-950/35 dark:to-stone-900">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-bold uppercase tracking-wide text-emerald-800/80 dark:text-emerald-300/90">
+            Dining Now
+          </span>
+          <UtensilsCrossed className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+        </div>
+        <p className="mt-2 text-3xl font-black tracking-tight text-emerald-950 dark:text-emerald-100">
+          {activeTableOrderCount}
+        </p>
+        <p className="mt-1 text-[11px] text-emerald-900/60 dark:text-emerald-200/50">
+          Tables with open kitchen tickets
+        </p>
+      </div>
+
+      <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm dark:border-stone-800 dark:bg-stone-900">
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-bold uppercase tracking-wide text-stone-500 dark:text-stone-400">
+            Ready to Scan
+          </span>
+          <QrCode className="h-4 w-4 text-stone-400 dark:text-stone-500" />
+        </div>
+        <p className="mt-2 text-3xl font-black tracking-tight text-stone-900 dark:text-white">
+          {idleTableCount}
+        </p>
+        <p className="mt-1 text-[11px] text-stone-500 dark:text-stone-400">
+          Idle tables waiting for guests
+        </p>
+      </div>
+    </section>
+  );
+
+  const toolbar = (
+    <div
+      className={
+        isAdminLayout
+          ? 'flex flex-col gap-3 rounded-2xl border border-stone-200/90 bg-white/90 p-4 shadow-sm backdrop-blur-sm dark:border-stone-800 dark:bg-stone-900/90 sm:flex-row sm:items-center'
+          : 'flex flex-col items-stretch justify-between gap-3 rounded-2xl border border-stone-200 bg-white p-3.5 shadow-2xs dark:border-stone-800 dark:bg-stone-900 sm:flex-row sm:items-center sm:p-4'
+      }
+    >
+      <div className="relative min-w-0 flex-1 sm:min-w-[220px]">
+        <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400 dark:text-stone-500" />
+        <input
+          id="search-tables-input"
+          type="text"
+          placeholder="Search by table name or number…"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="min-h-[44px] w-full rounded-xl border border-stone-200 bg-stone-50 py-2 pl-10 pr-8 text-sm text-stone-900 transition-colors placeholder:text-stone-400 focus:border-amber-500 focus:bg-white focus:outline-none dark:border-stone-700 dark:bg-stone-950 dark:text-stone-100 dark:focus:bg-stone-900"
+        />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-stone-400 hover:text-stone-700 dark:hover:text-stone-200"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+
+      <button
+        id="create-new-table-btn"
+        type="button"
+        onClick={handleOpenAddModal}
+        className={
+          isAdminLayout
+            ? 'flex min-h-[44px] shrink-0 items-center justify-center gap-1.5 rounded-xl bg-stone-900 px-5 text-sm font-bold text-white shadow-md transition-all hover:bg-stone-800 active:scale-[0.98] dark:bg-amber-500 dark:text-stone-950 dark:hover:bg-amber-400'
+            : 'flex min-h-[42px] shrink-0 items-center justify-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-black text-stone-950 shadow-md transition-all hover:bg-amber-400 active:scale-[0.98] sm:text-sm'
+        }
+      >
+        <Plus className="h-4 w-4" />
+        <span>Add Table</span>
+      </button>
+    </div>
+  );
+
+  const tablesGrid = (
+      <div
+        className={
+          isAdminLayout
+            ? 'grid grid-cols-1 gap-4 md:grid-cols-2 2xl:grid-cols-3'
+            : 'grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3'
+        }
+      >
         {filteredTables.length === 0 ? (
-          <div className="col-span-full py-12 text-center rounded-3xl border border-dashed border-stone-300 dark:border-stone-800 bg-white dark:bg-stone-900 p-8 space-y-3">
-            <QrCode className="h-10 w-10 text-stone-300 dark:text-stone-600 mx-auto" />
+          <div
+            className={`col-span-full space-y-3 p-10 text-center ${
+              isAdminLayout
+                ? 'rounded-3xl border border-dashed border-amber-200/80 bg-amber-50/40 dark:border-amber-500/25 dark:bg-amber-950/15'
+                : 'rounded-3xl border border-dashed border-stone-300 bg-white dark:border-stone-800 dark:bg-stone-900'
+            }`}
+          >
+            <QrCode className="mx-auto h-10 w-10 text-amber-400/70 dark:text-amber-500/60" />
             <h3 className="text-base font-bold text-stone-800 dark:text-stone-200">No tables found</h3>
-            <p className="text-xs text-stone-400 max-w-sm mx-auto">
-              Add a table to generate its QR stand for customers.
+            <p className="mx-auto max-w-sm text-xs text-stone-500 dark:text-stone-400">
+              {searchQuery.trim()
+                ? 'Try a different search term or clear the filter.'
+                : 'Add a table to generate its QR stand for customers.'}
             </p>
             <button
+              type="button"
               onClick={handleOpenAddModal}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-amber-500 text-stone-950 px-4 py-2 text-xs font-bold shadow-sm hover:bg-amber-400"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-stone-900 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-stone-800 dark:bg-amber-500 dark:text-stone-950 dark:hover:bg-amber-400"
             >
               <Plus className="h-4 w-4" />
               <span>Add Table</span>
@@ -231,52 +311,68 @@ export const TableManagement: React.FC<TableManagementProps> = ({
             const active = hasActiveOrder(table.number);
 
             return (
-              <div
+              <article
                 key={table.id}
                 id={`table-card-${table.number}`}
-                className={`flex flex-col justify-between rounded-2xl border bg-white dark:bg-stone-900 p-4 shadow-2xs transition-all hover:shadow-md ${
+                className={`flex flex-col justify-between overflow-hidden rounded-3xl border p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md sm:p-5 ${
                   active
-                    ? 'border-emerald-500/80 dark:border-emerald-500/60 ring-1 ring-emerald-500/40'
-                    : 'border-stone-200 dark:border-stone-800'
+                    ? isAdminLayout
+                      ? 'border-emerald-300/80 bg-gradient-to-br from-emerald-50/80 via-white to-white ring-1 ring-emerald-400/30 dark:border-emerald-500/40 dark:from-emerald-950/30 dark:via-stone-900 dark:to-stone-900'
+                      : 'border-emerald-500/80 ring-1 ring-emerald-500/40 dark:border-emerald-500/60'
+                    : isAdminLayout
+                      ? 'border-stone-200/90 bg-gradient-to-br from-white via-white to-amber-50/40 dark:border-stone-800 dark:from-stone-900 dark:via-stone-900 dark:to-amber-950/20'
+                      : 'border-stone-200 bg-white dark:border-stone-800 dark:bg-stone-900'
                 }`}
               >
-                {/* Top Info */}
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="flex h-11 w-11 flex-col items-center justify-center rounded-xl bg-stone-950 dark:bg-stone-800 text-white border border-stone-800 dark:border-stone-700 shadow-2xs shrink-0">
-                      <span className="text-[8px] font-bold uppercase tracking-widest text-amber-400 leading-none">TBL</span>
-                      <span className="text-sm font-black leading-tight truncate max-w-[36px]">{table.number}</span>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div
+                      className={`flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-2xl border shadow-sm ${
+                        active
+                          ? 'border-emerald-600/30 bg-emerald-900 text-emerald-50 dark:bg-emerald-950'
+                          : 'border-stone-800 bg-stone-950 text-white dark:border-stone-700 dark:bg-stone-800'
+                      }`}
+                    >
+                      <span className="text-[8px] font-bold uppercase leading-none tracking-widest text-amber-400">
+                        TBL
+                      </span>
+                      <span className="max-w-[40px] truncate text-sm font-black leading-tight">
+                        {table.number}
+                      </span>
                     </div>
 
                     <div className="min-w-0">
-                      <h3 className="text-base font-black text-stone-900 dark:text-white leading-tight truncate">
+                      <h3 className="truncate text-base font-black leading-tight text-stone-900 dark:text-white">
                         {table.name}
                       </h3>
                       {active ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          <span>Active Order</span>
+                        <span className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
+                          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                          Active order in kitchen
                         </span>
                       ) : (
-                        <span className="text-[11px] text-stone-400">Ready for scan</span>
+                        <span className="text-[11px] text-stone-500 dark:text-stone-400">
+                          QR ready · scan to open menu
+                        </span>
                       )}
                     </div>
                   </div>
 
-                  {/* Edit & Delete Quick Icons */}
-                  <div className="flex items-center gap-1 shrink-0">
+                  <div className="flex shrink-0 items-center gap-0.5">
                     <button
+                      type="button"
                       id={`edit-table-btn-${table.number}`}
                       onClick={() => handleOpenEditModal(table)}
-                      className="p-2 rounded-lg text-stone-500 hover:text-stone-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
-                      title="Edit table name"
+                      className="rounded-lg p-2 text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-900 dark:hover:bg-stone-800 dark:hover:text-white"
+                      title="Edit table"
                     >
                       <Edit2 className="h-3.5 w-3.5" />
                     </button>
                     <button
+                      type="button"
                       id={`delete-table-btn-${table.number}`}
                       onClick={() => handleDeleteTable(table)}
-                      className="p-2 rounded-lg text-stone-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                      className="rounded-lg p-2 text-stone-400 transition-colors hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/30 dark:hover:text-rose-400"
                       title="Delete table"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -284,33 +380,123 @@ export const TableManagement: React.FC<TableManagementProps> = ({
                   </div>
                 </div>
 
-                {/* Primary Actions Row */}
-                <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-stone-100 dark:border-stone-800">
-                  {/* View QR Stand */}
+                <div
+                  className={`mt-4 grid gap-2 border-t pt-4 dark:border-stone-800 ${
+                    isAdminLayout ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-2'
+                  }`}
+                >
                   <button
+                    type="button"
                     id={`inspect-qr-table-${table.number}`}
                     onClick={() => handleInspectQR(table)}
-                    className="flex items-center justify-center gap-1.5 rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 hover:bg-stone-100 dark:hover:bg-stone-750 px-2.5 py-2 text-xs font-bold text-stone-800 dark:text-stone-200 transition-colors min-h-[38px]"
+                    className="flex min-h-[40px] items-center justify-center gap-1.5 rounded-xl border border-stone-200 bg-white px-2.5 py-2 text-xs font-bold text-stone-800 transition-colors hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-950 dark:text-stone-200 dark:hover:bg-stone-800"
                   >
                     <QrCode className="h-3.5 w-3.5 text-amber-500" />
-                    <span>QR Stand</span>
+                    <span>Quick QR</span>
                   </button>
 
-                  {/* Test Menu */}
+                  {isAdminLayout && onOpenQRStandForTable && (
+                    <button
+                      type="button"
+                      id={`full-qr-stand-table-${table.number}`}
+                      onClick={() => onOpenQRStandForTable(table.number)}
+                      className="flex min-h-[40px] items-center justify-center gap-1.5 rounded-xl border border-amber-200/80 bg-amber-50 px-2.5 py-2 text-xs font-bold text-amber-950 transition-colors hover:bg-amber-100 dark:border-amber-500/30 dark:bg-amber-950/40 dark:text-amber-100 dark:hover:bg-amber-950/55"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      <span>Full Stand</span>
+                    </button>
+                  )}
+
                   <button
+                    type="button"
                     id={`preview-menu-table-${table.number}`}
                     onClick={() => onSelectTableForPreview?.(table.number)}
-                    className="flex items-center justify-center gap-1.5 rounded-xl bg-stone-900 dark:bg-amber-500 hover:bg-stone-800 dark:hover:bg-amber-400 text-white dark:text-stone-950 px-2.5 py-2 text-xs font-bold transition-colors min-h-[38px] shadow-2xs"
+                    className={`flex min-h-[40px] items-center justify-center gap-1.5 rounded-xl px-2.5 py-2 text-xs font-bold shadow-sm transition-colors ${
+                      isAdminLayout
+                        ? 'bg-stone-900 text-white hover:bg-stone-800 dark:bg-amber-500 dark:text-stone-950 dark:hover:bg-amber-400'
+                        : 'bg-stone-900 text-white hover:bg-stone-800 dark:bg-amber-500 dark:text-stone-950 dark:hover:bg-amber-400'
+                    }`}
                   >
                     <span>Test Menu</span>
                     <ArrowRight className="h-3 w-3" />
                   </button>
                 </div>
-              </div>
+              </article>
             );
           })
         )}
       </div>
+  );
+
+  const adminSidebar = isAdminLayout && (
+    <aside className="hidden xl:flex xl:flex-col xl:gap-4">
+      <div className="rounded-3xl border border-amber-200/70 bg-gradient-to-b from-amber-50 to-white p-5 shadow-sm dark:border-amber-500/20 dark:from-amber-950/35 dark:to-stone-900">
+        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400">
+          <Sparkles className="h-5 w-5" />
+        </div>
+        <h2 className="text-sm font-black text-stone-900 dark:text-white">QR workflow</h2>
+        <ol className="mt-3 space-y-2.5 text-xs leading-relaxed text-stone-600 dark:text-stone-400">
+          <li>
+            <span className="font-bold text-stone-800 dark:text-stone-200">1.</span> Add or edit a table
+            name and number.
+          </li>
+          <li>
+            <span className="font-bold text-stone-800 dark:text-stone-200">2.</span> Open{' '}
+            <strong>Full Stand</strong> to print the in-store QR display.
+          </li>
+          <li>
+            <span className="font-bold text-stone-800 dark:text-stone-200">3.</span> Guests scan →{' '}
+            <code className="rounded bg-stone-100 px-1 py-0.5 text-[10px] dark:bg-stone-800">
+              /order?table=
+            </code>{' '}
+            opens automatically.
+          </li>
+        </ol>
+      </div>
+
+      {onOpenQRStandForTable && tables[0] && (
+        <button
+          type="button"
+          onClick={() => onOpenQRStandForTable(tables[0].number)}
+          className="flex w-full items-center justify-center gap-2 rounded-2xl border border-stone-200 bg-white px-4 py-3 text-xs font-bold text-stone-800 shadow-sm transition-colors hover:bg-stone-50 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:hover:bg-stone-800"
+        >
+          <QrCode className="h-4 w-4 text-amber-500" />
+          Preview first table stand
+        </button>
+      )}
+    </aside>
+  );
+
+  return (
+    <div
+      id="table-management-panel"
+      className={isAdminLayout ? 'space-y-6' : 'space-y-4'}
+    >
+      {toastMessage && (
+        <div
+          className={`fixed right-4 z-50 flex items-center gap-2 rounded-2xl border border-stone-700 bg-stone-900 px-4 py-3 text-xs font-bold text-white shadow-2xl animate-in slide-in-from-top-3 duration-200 dark:border-amber-400 dark:bg-amber-500 dark:text-stone-950 ${toastPositionClass}`}
+        >
+          <CheckCircle2 className="h-4 w-4 text-emerald-400 dark:text-stone-950" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
+      {statsSection}
+
+      {isAdminLayout ? (
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_260px]">
+          <div className="min-w-0 space-y-4">
+            {toolbar}
+            {tablesGrid}
+          </div>
+          {adminSidebar}
+        </div>
+      ) : (
+        <>
+          {toolbar}
+          {tablesGrid}
+        </>
+      )}
 
       {/* Simple Modal: Add / Edit Table (Just Name) */}
       {isModalOpen && (

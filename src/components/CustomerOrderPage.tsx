@@ -247,7 +247,7 @@ export const CustomerOrderPage: React.FC<CustomerOrderPageProps> = ({
     <div id="customer-order-page" className="min-h-screen bg-stone-100/70 text-stone-900 dark:bg-stone-950 dark:text-stone-100 pb-36 transition-colors duration-200">
       {/* Top Sticky Header */}
       <header className="sticky top-0 z-20 border-b border-stone-200 dark:border-stone-800 bg-white/95 dark:bg-stone-950/95 backdrop-blur-md px-3.5 sm:px-6 py-2.5 sm:py-3.5 shadow-2xs transition-colors">
-        <div className="max-w-3xl mx-auto flex items-center justify-between gap-2.5">
+        <div className="max-w-5xl mx-auto flex items-center justify-between gap-2.5">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-stone-900 dark:bg-amber-500 text-amber-100 dark:text-stone-950 shadow-sm shrink-0">
               <Coffee className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -320,7 +320,7 @@ export const CustomerOrderPage: React.FC<CustomerOrderPageProps> = ({
       </header>
 
       {/* Main Container */}
-      <main className="max-w-3xl mx-auto px-3.5 sm:px-6 pt-3.5 space-y-3.5">
+      <main className="max-w-5xl mx-auto px-3.5 sm:px-6 pt-3.5 space-y-3.5">
         {/* Active Order in Progress Banner */}
         {tableActiveOrder && (
           <div
@@ -376,12 +376,14 @@ export const CustomerOrderPage: React.FC<CustomerOrderPageProps> = ({
               Ordering directly to <strong>Table {tableNumber}</strong>. Tap any dish for rich details or tap <span className="font-bold">+</span> to add.
             </p>
           </div>
-          <button
-            onClick={onBackToQR}
-            className="text-[11px] font-bold text-amber-900 dark:text-amber-300 underline whitespace-nowrap shrink-0 hover:text-amber-700 dark:hover:text-amber-200 p-1"
-          >
-            Table QR
-          </button>
+          {onBackToQR && (
+            <button
+              onClick={onBackToQR}
+              className="text-[11px] font-bold text-amber-900 dark:text-amber-300 underline whitespace-nowrap shrink-0 hover:text-amber-700 dark:hover:text-amber-200 p-1"
+            >
+              Table QR
+            </button>
+          )}
         </div>
 
         {/* Search Bar */}
@@ -485,7 +487,7 @@ export const CustomerOrderPage: React.FC<CustomerOrderPageProps> = ({
               <p className="text-xs text-stone-400 dark:text-stone-500 mt-0.5">Try resetting search or dietary filters</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
               {filteredMenuItems.map((item) => {
                 const qty = cart[item.id] || 0;
                 const isAvailable = item.available !== false;
@@ -629,7 +631,7 @@ export const CustomerOrderPage: React.FC<CustomerOrderPageProps> = ({
           id="running-cart-bar"
           className="fixed bottom-0 left-0 right-0 z-30 p-3 sm:p-4 bg-gradient-to-t from-stone-900/50 via-stone-900/20 to-transparent pointer-events-none"
         >
-          <div className="max-w-3xl mx-auto bg-stone-950 text-white rounded-2xl p-3 sm:p-3.5 shadow-2xl border border-stone-800 space-y-2.5 pointer-events-auto animate-in slide-in-from-bottom-3 duration-200">
+          <div className="max-w-5xl mx-auto bg-stone-950 text-white rounded-2xl p-3 sm:p-3.5 shadow-2xl border border-stone-800 space-y-2.5 pointer-events-auto animate-in slide-in-from-bottom-3 duration-200">
 
             {/* Expandable Notes Input */}
             {showNotesInput && (

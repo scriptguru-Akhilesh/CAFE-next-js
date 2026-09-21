@@ -10,17 +10,18 @@ import {
 } from 'lucide-react';
 import { KitchenOrder, OrderStatus } from '../types';
 import { orderStorage } from '../utils/orderStorage';
-import { ThemeToggle } from './ThemeToggle';
-
 interface KitchenViewProps {
   onSwitchToCustomer: (table?: string) => void;
   onSwitchToMenuManagement?: () => void;
+  variant?: 'standalone' | 'admin';
 }
 
 export const KitchenView: React.FC<KitchenViewProps> = ({
   onSwitchToCustomer,
   onSwitchToMenuManagement,
+  variant = 'standalone',
 }) => {
+  const isAdminShell = variant === 'admin';
   // Always initialize from orderStorage (instant load, never blank)
   const [orders, setOrders] = useState<KitchenOrder[]>(() => orderStorage.getOrders());
   const [loading] = useState(false);
@@ -200,93 +201,121 @@ export const KitchenView: React.FC<KitchenViewProps> = ({
     };
   };
 
+  const kitchenToolbarButtons = (
+    <>
+      <button
+        id="kitchen-view-mode-toggle"
+        onClick={() => setViewMode(viewMode === 'cards' ? 'compact' : 'cards')}
+        title={viewMode === 'cards' ? 'Switch to Compact View' : 'Switch to Cards View'}
+        className="flex h-9 min-h-[38px] items-center justify-center rounded-xl border border-stone-200 bg-white px-2.5 text-stone-600 transition-colors hover:bg-stone-100 hover:text-stone-900 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-white sm:h-10"
+      >
+        {viewMode === 'cards' ? (
+          <ListFilter className="h-4 w-4 text-amber-400" />
+        ) : (
+          <LayoutGrid className="h-4 w-4 text-amber-400" />
+        )}
+        <span className="ml-1.5 hidden text-xs font-semibold lg:inline">
+          {viewMode === 'cards' ? 'Compact' : 'Cards'}
+        </span>
+      </button>
+
+      <button
+        id="kitchen-sound-toggle-btn"
+        onClick={() => {
+          unlockAudio();
+          setSoundEnabled(!soundEnabled);
+        }}
+        title={soundEnabled ? 'Order sound alert ON' : 'Order sound alert OFF'}
+        className={`flex h-9 min-h-[38px] items-center justify-center rounded-xl border px-2.5 text-xs font-semibold transition-all sm:h-10 sm:px-3 ${soundEnabled
+          ? 'border-amber-500/30 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-300 dark:hover:bg-amber-500/20'
+          : 'border-stone-200 bg-stone-50 text-stone-500 hover:bg-stone-100 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-400 dark:hover:bg-stone-800'
+          }`}
+      >
+        {soundEnabled ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
+        <span className="ml-1.5 hidden md:inline">{soundEnabled ? 'Chime ON' : 'Muted'}</span>
+      </button>
+
+      {!isAdminShell && onSwitchToMenuManagement && (
+        <button
+          id="kitchen-manage-menu-btn"
+          onClick={onSwitchToMenuManagement}
+          title="Manage cafe menu items"
+          className="flex h-9 min-h-[38px] items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/10 px-2.5 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-500/20 dark:text-amber-300 sm:h-10 sm:px-3"
+        >
+          <Layers className="h-4 w-4 text-amber-400" />
+          <span className="ml-1.5 hidden sm:inline">Menu</span>
+        </button>
+      )}
+    </>
+  );
+
   return (
     <div
       id="kitchen-view-page"
       onClick={unlockAudio}
-      className="min-h-screen bg-stone-100 text-stone-900 dark:bg-stone-900 dark:text-stone-100 pb-28 select-none touch-manipulation transition-colors duration-200"
+      className={
+        isAdminShell
+          ? 'pb-6 select-none touch-manipulation text-stone-900 transition-colors duration-200 dark:text-stone-100'
+          : 'min-h-screen bg-stone-100 pb-28 text-stone-900 select-none touch-manipulation transition-colors duration-200 dark:bg-stone-900 dark:text-stone-100'
+      }
     >
-      {/* Kitchen Display Top Header - Mobile Optimized */}
-      <header className="sticky top-0 z-20 border-b border-stone-200 dark:border-stone-800 bg-white/95 dark:bg-stone-950/95 backdrop-blur-md px-3 sm:px-6 py-2.5 sm:py-3.5 shadow-md transition-colors">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
-
-          {/* Brand & Live indicator */}
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 shadow-inner">
-              <ChefHat className="h-4 w-4 sm:h-5 sm:w-5" />
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <h1 className="text-sm sm:text-base md:text-lg font-black tracking-tight text-stone-900 dark:text-stone-900 dark:text-white truncate">
-                  <span className="hidden xs:inline sm:inline">Kitchen Display</span>
-                  <span className="xs:hidden sm:hidden">KDS</span>
+      <header
+        className={
+          isAdminShell
+            ? 'mb-5 flex flex-col gap-4 border-b border-stone-200/80 pb-5 dark:border-stone-800 sm:flex-row sm:items-end sm:justify-between'
+            : 'sticky top-0 z-20 border-b border-stone-200 bg-white/95 px-3 py-2.5 shadow-md backdrop-blur-md transition-colors dark:border-stone-800 dark:bg-stone-950/95 sm:px-6 sm:py-3.5'
+        }
+      >
+        {isAdminShell ? (
+          <>
+            <div className="min-w-0 space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-xl font-black tracking-tight text-stone-900 dark:text-white sm:text-2xl">
+                  Kitchen Display (KDS)
                 </h1>
-                <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 whitespace-nowrap">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                  <span>{counts.active} Active</span>
+                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                  {counts.active} active
                 </span>
               </div>
-              <p className="text-[11px] text-stone-500 dark:text-stone-400 hidden md:block">
-                Staff updates: Pending → Preparing → Ready → Served
+              <p className="max-w-2xl text-xs leading-relaxed text-stone-500 dark:text-stone-400 sm:text-sm">
+                Live order queue — move tickets from Pending through Preparing, Ready, and Served.
               </p>
             </div>
+            <div className="flex shrink-0 flex-wrap items-center gap-1.5 sm:gap-2.5">
+              {kitchenToolbarButtons}
+            </div>
+          </>
+        ) : (
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 sm:gap-4">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/20 text-amber-400 shadow-inner sm:h-10 sm:w-10">
+                <ChefHat className="h-4 w-4 sm:h-5 sm:w-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <h1 className="truncate text-sm font-black tracking-tight text-stone-900 dark:text-white sm:text-base md:text-lg">
+                    Kitchen Display
+                  </h1>
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-emerald-500/30 bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-bold text-emerald-400 sm:px-2 sm:text-[11px]">
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+                    <span>{counts.active} Active</span>
+                  </span>
+                </div>
+                <p className="hidden text-[11px] text-stone-500 dark:text-stone-400 md:block">
+                  Staff updates: Pending → Preparing → Ready → Served
+                </p>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
+              {kitchenToolbarButtons}
+            </div>
           </div>
-
-          {/* Action buttons (Touch-Friendly) */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-
-            {/* View Mode Toggle: Cards vs Compact */}
-            <button
-              id="kitchen-view-mode-toggle"
-              onClick={() => setViewMode(viewMode === 'cards' ? 'compact' : 'cards')}
-              title={viewMode === 'cards' ? 'Switch to Compact View' : 'Switch to Cards View'}
-              className="flex items-center justify-center h-9 sm:h-10 px-2.5 rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-900 dark:text-white hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors min-h-[38px]"
-            >
-              {viewMode === 'cards' ? (
-                <ListFilter className="h-4 w-4 text-amber-400" />
-              ) : (
-                <LayoutGrid className="h-4 w-4 text-amber-400" />
-              )}
-              <span className="hidden lg:inline ml-1.5 text-xs font-semibold">
-                {viewMode === 'cards' ? 'Compact' : 'Cards'}
-              </span>
-            </button>
-
-            {/* Chime toggle */}
-            <button
-              id="kitchen-sound-toggle-btn"
-              onClick={() => {
-                unlockAudio();
-                setSoundEnabled(!soundEnabled);
-              }}
-              title={soundEnabled ? 'Order sound alert ON' : 'Order sound alert OFF'}
-              className={`flex items-center justify-center h-9 sm:h-10 px-2.5 sm:px-3 rounded-xl border text-xs font-semibold transition-all min-h-[38px] ${soundEnabled
-                ? 'border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-500/20'
-                : 'border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800'
-                }`}
-            >
-              {soundEnabled ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
-              <span className="hidden md:inline ml-1.5">{soundEnabled ? 'Chime ON' : 'Muted'}</span>
-            </button>
-
-            {/* Owner Menu Management */}
-            {onSwitchToMenuManagement && (
-              <button
-                id="kitchen-manage-menu-btn"
-                onClick={onSwitchToMenuManagement}
-                title="Manage cafe menu items"
-                className="flex items-center justify-center h-9 sm:h-10 px-2.5 sm:px-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-xs font-semibold text-amber-300 hover:bg-amber-500/20 transition-colors min-h-[38px]"
-              >
-                <Layers className="h-4 w-4 text-amber-400" />
-                <span className="hidden sm:inline ml-1.5">Menu</span>
-              </button>
-            )}
-          </div>
-        </div>
+        )}
       </header>
 
       {/* Main Kitchen Display Container */}
-      <main className="max-w-7xl mx-auto px-3 sm:px-6 pt-4 sm:pt-6">
+      <main className={isAdminShell ? 'space-y-4' : 'mx-auto max-w-7xl px-3 pt-4 sm:px-6 sm:pt-6'}>
 
         {/* Mobile Audio Warning Banner (if browser blocked sound autoplay) */}
         {!audioUnlocked && soundEnabled && (

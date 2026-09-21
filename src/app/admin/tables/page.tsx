@@ -8,19 +8,18 @@ export default function AdminTablesPage() {
   const router = useRouter();
 
   return (
-    <div className="py-2">
-      <MenuManagement
-        onBackToMenu={(table) => {
-          router.push(table ? `/order?table=${encodeURIComponent(table)}` : '/order');
-        }}
-        onSwitchToKitchen={() => {
-          router.push('/admin/kitchen');
-        }}
-        onOpenQRStand={(table) => {
-          router.push(table ? `/?table=${encodeURIComponent(table)}` : '/');
-        }}
-        initialTab="tables"
-      />
-    </div>
+    <MenuManagement
+      variant="admin"
+      onBackToMenu={(table) => {
+        router.push(table ? `/order?table=${encodeURIComponent(table)}` : '/order');
+      }}
+      onSwitchToKitchen={() => {
+        router.push('/admin/kitchen');
+      }}
+      onOpenQRStand={(table) => {
+        router.push(table ? `/qr?table=${encodeURIComponent(table)}` : '/qr');
+      }}
+      initialTab="tables"
+    />
   );
 }

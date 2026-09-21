@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { CustomerOrderPage } from '@/components/CustomerOrderPage';
+import { TableQRScreen } from '@/components/TableQRScreen';
 
-function OrderPageContent() {
+function TableQRPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [tableNumber, setTableNumber] = useState<string>('5');
@@ -18,27 +18,27 @@ function OrderPageContent() {
 
   const handleTableChange = (newTable: string) => {
     setTableNumber(newTable);
-    router.replace(`/order?table=${encodeURIComponent(newTable)}`);
+    router.replace(`/qr?table=${encodeURIComponent(newTable)}`);
   };
 
-  const handleBackToQR = () => {
-    router.push(`/qr?table=${encodeURIComponent(tableNumber)}`);
+  const handleOpenMenu = () => {
+    router.push(`/order?table=${encodeURIComponent(tableNumber)}`);
   };
 
   return (
-    <CustomerOrderPage
+    <TableQRScreen
       tableNumber={tableNumber}
       onTableChange={handleTableChange}
-      onBackToQR={handleBackToQR}
+      onOpenMenu={handleOpenMenu}
       showAdminNavigation={false}
     />
   );
 }
 
-export default function OrderPage() {
+export default function TableQRPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-stone-950 text-stone-500">Loading digital menu...</div>}>
-      <OrderPageContent />
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-stone-950 text-stone-500">Loading Corner Roastery...</div>}>
+      <TableQRPageContent />
     </Suspense>
   );
 }
